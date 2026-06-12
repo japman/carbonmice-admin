@@ -4,8 +4,9 @@ require "rails/test_help"
 
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors)
+    # pg 1.6.3 segfaults in forked parallel workers under Ruby 4.0.0.
+    # Re-enable (workers: :number_of_processors) once the pg gem fixes it.
+    parallelize(workers: 1)
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
