@@ -21,8 +21,10 @@ This project adds an **admin panel** as a new, separate Rails application. Admin
 | Authentication | Rails 8 built-in authentication generator (session + bcrypt); no Devise |
 | Roles | `superadmin` / `admin` / `viewer` |
 | Architecture | Classic hexagonal (Ports & Adapters) with a pure-PORO domain layer, inside a modular monolith |
-| Phase-1 scope | Events (incl. status changes), app users, master data (emission factors / categories / units / pricing tiers), dashboard |
+| Phase-1 scope | Events (incl. status changes), app users, master data (emission factors / categories / units / pricing tiers), dashboard, audit log viewer |
 | Delivery layer | DHH-style: ERB + Hotwire (Turbo/Stimulus), importmap (no Node build), Minitest, minimal gems |
+| Audit log | Every write to Go-owned tables **and every auth event** (login success/failure, logout) is recorded; viewer page for superadmin |
+| UI / Corporate identity | Follow the current carbonmice web CI (see §10); carbon MICE logo; Thai-first UI |
 
 ## 3. Stack
 
@@ -68,11 +70,15 @@ app/
       upsert_emission_factor.rb # + categories, units, pricing tiers
     dashboard/
       system_summary.rb
+    audit/
+      list_entries.rb           # audit log viewer (filter by admin/action/date)
     ports/                      # duck-typed interfaces, contract in comments
       event_repository.rb
       app_user_repository.rb
       emission_factor_repository.rb
       stats_query.rb
+      audit_recorder.rb         # record(actor:, action:, target:, changes:) — used by all modules
+      audit_log_query.rb
     result.rb                   # shared Result object (success?/failure?/error)
   adapters/
     persistence/                # ActiveRecord implementations of ports
@@ -80,6 +86,8 @@ app/
       ar_app_user_repository.rb
       ar_emission_factor_repository.rb
       ar_stats_query.rb
+      ar_audit_recorder.rb
+      ar_audit_log_query.rb
   models/
     core/                       # Go-owned tables (read mapping only)
     admin_user.rb               # Rails-owned
@@ -96,11 +104,20 @@ app/
 - `bin/rails generate authentication` → `AdminUser` + DB-backed `Session`, bcrypt passwords.
 - `AdminUser.role` enum: `superadmin`, `admin`, `viewer`.
 - `AdminAuth::AccessPolicy` (PORO) is the single authority for "can this role do this action?":
-  - **viewer** — read everything, change nothing (controls hidden in UI *and* enforced in controllers via the policy).
+  - **viewer** — read all operational pages (not the audit log), change nothing (controls hidden in UI *and* enforced in controllers via the policy).
   - **admin** — manage events, app users, master data.
-  - **superadmin** — everything, plus create/deactivate admin accounts and change roles.
+  - **superadmin** — everything, plus create/deactivate admin accounts, change roles, and view the audit log.
 - Login endpoint protected with Rails 8 built-in `rate_limit`.
 - First superadmin is created by `db/seeds.rb`, reading credentials from ENV (never hardcoded).
+
+### Audit log
+
+One `admin.audit_logs` table records two kinds of entries:
+
+1. **Auth events** — login success, login failure (attempted email), logout; with IP address, user agent, timestamp.
+2. **Data changes** — every write to a Go-owned table and every admin-account change: actor, action, target record, old value → new value (JSON), timestamp.
+
+Recording goes through the `audit_recorder` port, called from domain use cases (data changes) and the auth flow (auth events) — so it cannot be skipped by a stray controller. Entries are insert-only: no update/delete path exists in the application. A superadmin-only page lists entries with filters (admin user, action type, date range).
 
 ## 7. Data Flow (canonical example: change event status)
 
@@ -129,7 +146,24 @@ Controllers contain no business logic; the domain renders nothing; adapters deci
 
 ## 10. UI & Deployment
 
-- Server-rendered ERB, Turbo for updates, Stimulus where needed. Table-first, plain admin styling with Tailwind.
+### Corporate identity
+
+The admin panel follows the current carbonmice web CI. Reference screenshots and the logo are committed under `docs/assets/ci/` (login, dashboard, data collection, form + `logo-carbonmice.png`). Tokens verified against `carbonmice-main-fe` source:
+
+- **Font:** IBM Plex Sans Thai (all weights used by the main web)
+- **Primary blue:** `#0065D0` (buttons, links, active states, chart primary)
+- **Error red:** `#D92D20`
+- **Text:** `#101828` (headings) / `#333741` (body)
+- **Backgrounds:** white cards on `#F9FAFB` / `#FCFCFD`; light-blue chip badges
+- **Shape:** large-radius rounded cards, soft borders, blue progress bars and donut charts (as in the reference dashboard)
+- **Logo:** carbon MICE "Green Power By PEA" lockup on the login page and sidebar (layout of the login page mirrors `login-reference.png`: white form panel + sky/CO₂ image panel, full-width blue button)
+- **Language:** Thai-first UI text
+
+These map to Tailwind theme tokens (`--color-primary: #0065D0`, font family, radius scale) defined once in the app's CSS.
+
+### Delivery
+
+- Server-rendered ERB, Turbo for updates, Stimulus where needed. Table-first admin styling with Tailwind using the tokens above.
 - Standard Rails 8 Dockerfile; a `carbonmice-admin` service added to the developer's local docker-compose setup on the existing `sit` network (compose change lives in this repo's docs/own compose file — the Go repo's compose is not modified).
 - GitLab CI mirroring the team's existing pipeline conventions.
 
@@ -137,6 +171,7 @@ Controllers contain no business logic; the domain renders nothing; adapters deci
 
 - SSO / carbonform integration for admin login
 - Per-module granular permissions (roles are coarse-grained for now)
+- English language toggle (Thai-only in phase 1)
 - Managing surveys, quotations approval workflow, carbon credits, TGO registration
 - Email sending from the admin panel
 - Any change to the Go backend or main frontend
