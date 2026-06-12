@@ -1,5 +1,6 @@
 -- TEST FIXTURE: structure-only snapshot of the Go backend's public schema.
 -- Regenerate with the command in README when the Go schema changes. Never edit by hand.
+-- Generated: 2026-06-12 from PostgreSQL 17 (pg_dump 18)
 --
 -- PostgreSQL database dump
 --
@@ -11,7 +12,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);

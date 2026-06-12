@@ -30,6 +30,8 @@ module CoreFactories
     Core::User.find(id)
   end
 
+  # Returns the new row's UUID string (no Core::CarbonEmission write model
+  # exists — emissions are read via Core::CarbonEmission in app code only).
   def create_core_emission!(event_id:, category_eng: "travel", category_thai: "การเดินทาง", pre: 10.5, post: nil)
     conn = ActiveRecord::Base.connection
     scope_id = conn.select_value(

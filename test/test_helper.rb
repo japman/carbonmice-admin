@@ -6,7 +6,11 @@ require "rails/test_help"
 # db/core_structure.sql is a fixture dumped from the dev DB — see README.
 connection = ActiveRecord::Base.connection
 unless connection.data_source_exists?("public.events")
-  connection.raw_connection.exec(File.read(File.expand_path("../db/core_structure.sql", __dir__)))
+  raise "core_structure.sql must only load in the test environment" unless Rails.env.test?
+
+  # BEGIN/COMMIT makes the load atomic (Postgres DDL is transactional):
+  # a failed load leaves no partial schema behind the idempotency guard.
+  connection.raw_connection.exec("BEGIN;\n#{File.read(File.expand_path("../db/core_structure.sql", __dir__))}\nCOMMIT;")
   # pg_dump pins search_path to '' for the session — restore ours.
   connection.execute("SET search_path TO admin, public")
 end
