@@ -5,13 +5,17 @@ module CoreFactories
   def create_core_event!(name_thai: "งานทดสอบ", name_eng: "Test Event", status: "draft",
                          area_name: nil, province: nil, created_by: "test-user")
     conn = ActiveRecord::Base.connection
-    type_id = conn.select_value(
-      "INSERT INTO public.event_types (name, created_by) VALUES ('ทดสอบ', 'test') RETURNING id"
-    )
-    template_id = conn.select_value(sanitize_sql(
-      "INSERT INTO public.event_templates (name, license_fee, created_by, event_type_id)
-       VALUES ('เทมเพลตทดสอบ', 0, 'test', ?) RETURNING id", type_id
-    ))
+    type_id = ActiveRecord::Base.uncached do
+      conn.select_value(
+        "INSERT INTO public.event_types (name, created_by) VALUES ('ทดสอบ', 'test') RETURNING id"
+      )
+    end
+    template_id = ActiveRecord::Base.uncached do
+      conn.select_value(sanitize_sql(
+        "INSERT INTO public.event_templates (name, license_fee, created_by, event_type_id)
+         VALUES ('เทมเพลตทดสอบ', 0, 'test', ?) RETURNING id", type_id
+      ))
+    end
     event_id = conn.select_value(sanitize_sql(
       "INSERT INTO public.events (name_thai, name_eng, event_status, area_name, province, created_by, event_template_id)
        VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
@@ -65,10 +69,12 @@ module CoreFactories
   end
 
   def create_core_offset_source!(name: "Test Source", name_th: nil)
-    id = ActiveRecord::Base.connection.select_value(sanitize_sql(
-      "INSERT INTO public.carbon_offset_sources (name, name_th, created_by)
-       VALUES (?, ?, 'test') RETURNING id", name, name_th
-    ))
+    id = ActiveRecord::Base.uncached do
+      ActiveRecord::Base.connection.select_value(sanitize_sql(
+        "INSERT INTO public.carbon_offset_sources (name, name_th, created_by)
+         VALUES (?, ?, 'test') RETURNING id", name, name_th
+      ))
+    end
     Core::CarbonOffsetSource.find(id)
   end
 
