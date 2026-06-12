@@ -3,7 +3,7 @@
 <%= form_with url: app_user_path(@app_user.id), method: :patch, scope: :app_user, class: "mt-6 max-w-md space-y-5" do |f| %>
   <div>
     <%= f.label :role, "สิทธิ์", class: "mb-1 block font-medium text-ink" %>
-    <%= f.select :role, AppUsers::ChangeRole::ROLES.map { |r| [r, r] },
+    <%= f.select :role, (AppUsers::ChangeRole::ROLES | [@app_user.role]).map { |r| [r, r] },
           { selected: @app_user.role }, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>
   <div>

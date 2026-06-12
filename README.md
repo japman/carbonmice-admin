@@ -34,7 +34,7 @@ implementations, controllers/views = web adapter).
 - Go-schema fixture: `db/core_structure.sql` is a structure-only snapshot of the
   shared DB's `public` schema, loaded into the test DB on boot. When the Go team
   migrates, regenerate it:
-  `pg_dump "$DEV_DB_URL" --schema=public --schema-only --no-owner --no-privileges | grep -v '^\\' > db/core_structure.sql`
+  `pg_dump "$DEV_DB_URL" --schema=public --schema-only --no-owner --no-privileges | grep -vE '^\\|^SET transaction_timeout' > db/core_structure.sql`
 
 ## Security notes
 
@@ -47,7 +47,7 @@ implementations, controllers/views = web adapter).
   `remote_ip` must be configured correctly or all clients share one bucket.
 - The audit log (`admin.audit_logs`) is insert-only at the application layer;
   DB-level `REVOKE UPDATE/DELETE` hardening lands with least-privilege grants
-  in Phase 2. Visibility is controlled solely by `AdminAuth::AccessPolicy`
+  in Phase 3 (deployment). Visibility is controlled solely by `AdminAuth::AccessPolicy`
   (currently superadmin) — granting other roles later is a one-line change.
 - Admin writes to Go-owned rows stamp `updated_by = "carbonmice-admin:<email>"`
   and are limited to: event descriptive fields, event_status (validated
@@ -56,7 +56,6 @@ implementations, controllers/views = web adapter).
 ## Spec & plans
 
 - Spec: `docs/superpowers/specs/2026-06-12-admin-panel-design.md`
-- Plan 1 (this foundation): `docs/superpowers/plans/2026-06-12-admin-foundation.md`
-- Phase 2 plan (events / app users / master data / dashboard, `db/core_structure.sql`
-  test fixture, Capybara system tests, Dockerfile + GitLab CI) is written after
-  this plan is reviewed.
+- Plan 1 (done): `docs/superpowers/plans/2026-06-12-admin-foundation.md`
+- Plan 2 (done): `docs/superpowers/plans/2026-06-12-admin-core-events-users.md`
+- Phase 3 (master data, dashboard, system tests, Dockerfile + GitLab CI) is written next.

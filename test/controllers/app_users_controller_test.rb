@@ -42,6 +42,18 @@ class AppUsersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "edit preselects an out-of-list role without demoting it" do
+    login(@superadmin)
+    user = create_core_user!(email: "vis@example.com", role: "visitor", quota: 1)
+    get edit_app_user_path(user.id)
+    assert_response :success
+    assert_select "select[name='app_user[role]'] option[selected][value='visitor']"
+    # quota-only save must not change the role
+    patch app_user_path(user.id), params: { app_user: { role: "visitor", event_quota: "2" } }
+    assert_equal "visitor", user.reload.role
+    assert_equal 2, user.reload.event_quota
+  end
+
   test "viewer can read but not write" do
     viewer = AdminUser.create!(email_address: "v@pea.co.th",
                                password: "password-for-tests", name: "วิว", role: :viewer)

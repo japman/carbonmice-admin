@@ -7,6 +7,6 @@ class AuditLog < ApplicationRecord
   # NOTE: readonly? does NOT block AuditLog.delete(id), .delete_all, .update_all,
   # or raw connection.execute — those must never appear in this codebase.
   # DB-level hardening (REVOKE UPDATE/DELETE on admin.audit_logs from the app
-  # role) is deferred to Plan 2 alongside least-privilege grants.
+  # role) is deferred to Plan 3 (deployment hardening) alongside least-privilege grants.
   def readonly? = persisted?
 end
