@@ -1,0 +1,60 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-ink"><%= @event.name_thai.presence || @event.name_eng %></h1>
+  <% if can?(:manage_events) %>
+    <%= link_to "แก้ไขข้อมูล", edit_event_path(@event.id),
+          class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark" %>
+  <% end %>
+</div>
+
+<dl class="mt-6 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-3 rounded-xl bg-white p-6 shadow-sm text-sm">
+  <dt class="font-medium text-body/60">ชื่อ (อังกฤษ)</dt><dd class="text-ink"><%= @event.name_eng %></dd>
+  <dt class="font-medium text-body/60">สถานะปัจจุบัน</dt><dd><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= @event.event_status %></span></dd>
+  <dt class="font-medium text-body/60">สถานที่</dt><dd class="text-ink"><%= @event.area_name %></dd>
+  <dt class="font-medium text-body/60">จังหวัด</dt><dd class="text-ink"><%= @event.province %></dd>
+  <dt class="font-medium text-body/60">สร้างโดย (raw id)</dt><dd class="font-mono text-xs"><%= @event.created_by %></dd>
+  <dt class="font-medium text-body/60">สร้างเมื่อ</dt><dd><%= @event.created_at&.in_time_zone&.strftime("%d/%m/%Y %H:%M") %></dd>
+</dl>
+
+<% if can?(:manage_events) %>
+  <div class="mt-6 max-w-3xl rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="font-semibold text-ink">เปลี่ยนสถานะ</h2>
+    <p class="mt-1 text-sm text-body/60">
+      การเปลี่ยนสถานะจากหน้านี้เป็นการแก้ไขข้อมูลโดยตรง — ไม่ส่งอีเมลและไม่หักโควต้า
+      (ระบบหลักเท่านั้นที่ทำขั้นตอนเหล่านั้น) ทุกการเปลี่ยนถูกบันทึกใน audit log
+    </p>
+    <% if @status_targets.any? %>
+      <%= form_with url: status_event_path(@event.id), method: :patch, class: "mt-3 flex items-end gap-3" do |f| %>
+        <%= f.select :to, @status_targets.map { |s| [s, s] }, {}, class: "rounded-lg border border-gray-300 px-3 py-2" %>
+        <%= f.submit "เปลี่ยนสถานะ", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+      <% end %>
+    <% else %>
+      <p class="mt-3 text-sm text-body/60">ไม่มีสถานะปลายทางที่เปลี่ยนได้จากสถานะปัจจุบัน</p>
+    <% end %>
+  </div>
+<% end %>
+
+<h2 class="mt-8 text-xl font-bold text-ink">การปล่อยคาร์บอน</h2>
+<% if @emissions.any? %>
+  <table class="mt-3 w-full max-w-3xl rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">หมวด</th>
+        <th class="px-4 py-3">ก่อนจัดงาน</th>
+        <th class="px-4 py-3">หลังจัดงาน</th>
+        <th class="px-4 py-3">หน่วย</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @emissions.each do |e| %>
+        <tr class="border-b border-gray-100">
+          <td class="px-4 py-3 font-medium text-ink"><%= e.carbon_category.name_thai %></td>
+          <td class="px-4 py-3"><%= e.pre_event_emission %></td>
+          <td class="px-4 py-3"><%= e.post_event_emission || "—" %></td>
+          <td class="px-4 py-3"><%= e.unit.code %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="mt-3 text-sm text-body/60">ยังไม่มีข้อมูลการปล่อยคาร์บอน</p>
+<% end %>

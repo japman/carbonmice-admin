@@ -1,0 +1,51 @@
+<h1 class="text-2xl font-bold text-ink">อีเว้นท์</h1>
+
+<%= form_with url: events_path, method: :get, class: "mt-4 flex flex-wrap items-end gap-3" do |f| %>
+  <div>
+    <%= f.label :search, "ค้นหา", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.text_field :search, value: params[:search], placeholder: "ชื่ออีเว้นท์ (ไทย/อังกฤษ)",
+          class: "w-72 rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <div>
+    <%= f.label :status, "สถานะ", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.select :status,
+          [["ทั้งหมด", ""]] + @statuses.map { |s| ["#{s.name_thai} (#{s.name_eng})", s.name_eng] },
+          { selected: params[:status] }, class: "rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <%= f.submit "กรอง", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
+
+<table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+  <thead>
+    <tr class="border-b border-gray-200 text-left text-body/60">
+      <th class="px-4 py-3">ชื่อ (ไทย)</th>
+      <th class="px-4 py-3">ชื่อ (อังกฤษ)</th>
+      <th class="px-4 py-3">สถานะ</th>
+      <th class="px-4 py-3">จังหวัด</th>
+      <th class="px-4 py-3">สร้างเมื่อ</th>
+      <th class="px-4 py-3"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @events.each do |event| %>
+      <tr class="border-b border-gray-100">
+        <td class="px-4 py-3 font-medium text-ink"><%= event.name_thai %></td>
+        <td class="px-4 py-3"><%= event.name_eng %></td>
+        <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= event.event_status %></span></td>
+        <td class="px-4 py-3"><%= event.province %></td>
+        <td class="px-4 py-3 whitespace-nowrap"><%= event.created_at&.in_time_zone&.strftime("%d/%m/%Y") %></td>
+        <td class="px-4 py-3 text-right"><%= link_to "ดูรายละเอียด", event_path(event.id), class: "text-primary" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="mt-4 flex items-center gap-3">
+  <% if @page > 1 %>
+    <%= link_to "← ก่อนหน้า", events_path(search: params[:search], status: params[:status], page: @page - 1), class: "text-primary" %>
+  <% end %>
+  <span class="text-sm text-body/60">หน้า <%= @page %></span>
+  <% if @has_next %>
+    <%= link_to "ถัดไป →", events_path(search: params[:search], status: params[:status], page: @page + 1), class: "text-primary" %>
+  <% end %>
+</div>
