@@ -117,7 +117,7 @@ One `admin.audit_logs` table records two kinds of entries:
 1. **Auth events** — login success, login failure (attempted email), logout; with IP address, user agent, timestamp.
 2. **Data changes** — every write to a Go-owned table and every admin-account change: actor, action, target record, old value → new value (JSON), timestamp.
 
-Recording goes through the `audit_recorder` port, called from domain use cases (data changes) and the auth flow (auth events) — so it cannot be skipped by a stray controller. Entries are insert-only: no update/delete path exists in the application. A superadmin-only page lists entries with filters (admin user, action type, date range).
+Recording goes through the `audit_recorder` port, called from domain use cases (data changes) and the auth flow (auth events) — so it cannot be skipped by a stray controller. Entries are insert-only: no update/delete path exists in the application. A superadmin-only page lists entries with filters (admin user, action type, date range). Visibility is a single rule in `AccessPolicy`, so granting other roles access later is a one-line change.
 
 ## 7. Data Flow (canonical example: change event status)
 
