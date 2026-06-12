@@ -9,4 +9,5 @@ Rails.application.routes.draw do
   resources :events, only: %i[index show edit update] do
     member { patch :status }
   end
+  resources :app_users, only: %i[index edit update]
 end

@@ -1,0 +1,50 @@
+class AppUsersController < ApplicationController
+  before_action -> { authorize!(:view_operations) }, only: :index
+  before_action -> { authorize!(:manage_app_users) }, only: %i[edit update]
+
+  def index
+    page = params[:page].to_i.clamp(1, 10_000)
+    rows = repo.list(search: params[:search].presence, page: page).to_a
+    @has_next = rows.size > Persistence::ArAppUserRepository::PAGE_SIZE
+    @app_users = rows.first(Persistence::ArAppUserRepository::PAGE_SIZE)
+    @page = page
+  end
+
+  def edit
+    @app_user = repo.find(params[:id])
+  rescue Ports::NotFound
+    redirect_to app_users_path, alert: "ไม่พบผู้ใช้งาน"
+  end
+
+  # Role and quota changes are independent audited use cases; only the
+  # fields that actually changed run (no audit noise for no-ops).
+  def update
+    current = repo.find(params[:id])
+    errors = []
+
+    if update_params[:role].present? && update_params[:role] != current.role
+      result = AppUsers::ChangeRole.call(actor: current_admin, id: params[:id],
+                                         role: update_params[:role], repo: repo, audit: audit)
+      errors << result.error if result.failure?
+    end
+
+    if update_params[:event_quota].present? && update_params[:event_quota].to_s != current.event_quota.to_s
+      result = AppUsers::AdjustQuota.call(actor: current_admin, id: params[:id],
+                                          quota: update_params[:event_quota], repo: repo, audit: audit)
+      errors << result.error if result.failure?
+    end
+
+    if errors.empty?
+      redirect_to app_users_path, notice: "บันทึกการแก้ไขแล้ว"
+    else
+      redirect_to edit_app_user_path(params[:id]), alert: errors.join(" / ")
+    end
+  rescue Ports::NotFound
+    redirect_to app_users_path, alert: "ไม่พบผู้ใช้งาน"
+  end
+
+  private
+    def update_params = params.require(:app_user).permit(:role, :event_quota)
+    def repo = Persistence::ArAppUserRepository.new
+    def audit = Persistence::ArAuditRecorder.new
+end
