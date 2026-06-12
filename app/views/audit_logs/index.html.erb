@@ -1,0 +1,44 @@
+<h1 class="text-2xl font-bold text-ink">บันทึกการใช้งาน</h1>
+
+<%= form_with url: audit_logs_path, method: :get, class: "mt-4 flex flex-wrap items-end gap-3" do |f| %>
+  <div>
+    <%= f.label :action_prefix, "ประเภท", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.select :action_prefix,
+          [["ทั้งหมด", ""], ["การเข้าสู่ระบบ", "auth."], ["บัญชีผู้ดูแล", "admin_users."]],
+          { selected: params[:action_prefix] }, class: "rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <div>
+    <%= f.label :from, "ตั้งแต่", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.date_field :from, value: params[:from], class: "rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <div>
+    <%= f.label :to, "ถึง", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.date_field :to, value: params[:to], class: "rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <%= f.submit "กรอง", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
+
+<table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+  <thead>
+    <tr class="border-b border-gray-200 text-left text-body/60">
+      <th class="px-4 py-3">เวลา</th>
+      <th class="px-4 py-3">ผู้กระทำ</th>
+      <th class="px-4 py-3">การกระทำ</th>
+      <th class="px-4 py-3">เป้าหมาย</th>
+      <th class="px-4 py-3">รายละเอียด</th>
+      <th class="px-4 py-3">IP</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @entries.each do |e| %>
+      <tr class="border-b border-gray-100 align-top">
+        <td class="whitespace-nowrap px-4 py-3"><%= e.created_at.in_time_zone("Asia/Bangkok").strftime("%d/%m/%Y %H:%M:%S") %></td>
+        <td class="px-4 py-3"><%= e.actor_email %></td>
+        <td class="px-4 py-3 font-medium text-ink"><%= e.action %></td>
+        <td class="px-4 py-3"><%= [e.target_type, e.target_id].compact.join("#") %></td>
+        <td class="px-4 py-3 font-mono text-xs"><%= e.change_set.presence&.to_json %></td>
+        <td class="px-4 py-3"><%= e.ip_address %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

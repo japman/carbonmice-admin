@@ -5,4 +5,5 @@ Rails.application.routes.draw do
   root "home#show"
   resource :session, only: %i[new create destroy]
   resources :admin_users, only: %i[index new create edit update]
+  resources :audit_logs, only: :index
 end
