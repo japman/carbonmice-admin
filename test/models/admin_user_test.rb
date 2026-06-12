@@ -23,4 +23,22 @@ class AdminUserTest < ActiveSupport::TestCase
     u = AdminUser.new(email_address: "s@pea.co.th", password: "short", name: "สั้น")
     refute u.valid?
   end
+
+  test "rejects passwords over 72 bytes even if under 72 characters" do
+    thai_password = "รหัสผ่านยาวมาก" * 2   # multibyte: > 72 bytes, < 72 chars
+    u = AdminUser.new(email_address: "b@pea.co.th", password: thai_password, name: "ไบต์")
+    refute u.valid?
+    assert u.errors[:password].any?
+  end
+
+  test "rejects malformed email address" do
+    u = AdminUser.new(email_address: "not-an-email", password: "password-for-tests", name: "ผิด")
+    refute u.valid?
+    assert u.errors[:email_address].any?
+  end
+
+  test "rejects blank name" do
+    u = AdminUser.new(email_address: "x@pea.co.th", password: "password-for-tests", name: "")
+    refute u.valid?
+  end
 end
