@@ -85,22 +85,29 @@ module CoreFactories
   private
 
     # carbon_scopes.name CHECK: scope_1|scope_2|scope_3
+    # Wrapped in uncached{} because INSERT…RETURNING with identical SQL is cached by
+    # the Rails query cache; without uncached a second call with the same arguments
+    # returns the first row's UUID rather than a fresh one.
     def create_core_category!(name_thai: "หมวดทดสอบ", name_eng: "test_category")
-      conn = ActiveRecord::Base.connection
-      scope_id = conn.select_value(
-        "INSERT INTO public.carbon_scopes (name, created_by) VALUES ('scope_1', 'test') RETURNING id"
-      )
-      conn.select_value(sanitize_sql(
-        "INSERT INTO public.carbon_categories (name_thai, name_eng, carbon_scope_id, created_by)
-         VALUES (?, ?, ?, 'test') RETURNING id", name_thai, name_eng, scope_id
-      ))
+      ActiveRecord::Base.uncached do
+        conn = ActiveRecord::Base.connection
+        scope_id = conn.select_value(
+          "INSERT INTO public.carbon_scopes (name, created_by) VALUES ('scope_1', 'test') RETURNING id"
+        )
+        conn.select_value(sanitize_sql(
+          "INSERT INTO public.carbon_categories (name_thai, name_eng, carbon_scope_id, created_by)
+           VALUES (?, ?, ?, 'test') RETURNING id", name_thai, name_eng, scope_id
+        ))
+      end
     end
 
     def create_core_unit!(code: "kg", multiplier: 1)
-      ActiveRecord::Base.connection.select_value(sanitize_sql(
-        "INSERT INTO public.units (code, multiplier, created_by) VALUES (?, ?, 'test') RETURNING id",
-        code, multiplier
-      ))
+      ActiveRecord::Base.uncached do
+        ActiveRecord::Base.connection.select_value(sanitize_sql(
+          "INSERT INTO public.units (code, multiplier, created_by) VALUES (?, ?, 'test') RETURNING id",
+          code, multiplier
+        ))
+      end
     end
 
     def sanitize_sql(sql, *binds)
