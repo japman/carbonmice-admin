@@ -1,0 +1,21 @@
+<h1 class="text-2xl font-bold text-ink">แก้ไขระดับราคา (ผู้เข้าร่วม)</h1>
+
+<%= form_with url: event_pricing_tier_path(@tier.id), method: :patch, scope: :tier,
+      class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :min_participants, "ผู้เข้าร่วมต่ำสุด", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :min_participants, value: @tier.min_participants, min: 0,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :max_participants, "ผู้เข้าร่วมสูงสุด (เว้นว่าง = ไม่จำกัด)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :max_participants, value: @tier.max_participants, min: 1,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :price_per_person, "ราคา/คน (บาท)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :price_per_person, value: @tier.price_per_person, step: "0.01", min: 0,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

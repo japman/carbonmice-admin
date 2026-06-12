@@ -1,0 +1,56 @@
+<h1 class="text-2xl font-bold text-ink">ระดับราคา</h1>
+
+<h2 class="mt-6 text-lg font-semibold text-ink">ค่าบริการต่อผู้เข้าร่วม (event pricing)</h2>
+<table class="mt-3 w-full max-w-3xl rounded-xl bg-white shadow-sm text-sm">
+  <thead>
+    <tr class="border-b border-gray-200 text-left text-body/60">
+      <th class="px-4 py-3">ผู้เข้าร่วม (ต่ำสุด)</th>
+      <th class="px-4 py-3">ผู้เข้าร่วม (สูงสุด)</th>
+      <th class="px-4 py-3">ราคา/คน (บาท)</th>
+      <th class="px-4 py-3"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @event_tiers.each do |t| %>
+      <tr class="border-b border-gray-100">
+        <td class="px-4 py-3"><%= t.min_participants %></td>
+        <td class="px-4 py-3"><%= t.max_participants || "ไม่จำกัด" %></td>
+        <td class="px-4 py-3 font-medium text-ink"><%= t.price_per_person %></td>
+        <td class="px-4 py-3 text-right">
+          <% if can?(:manage_master_data) %>
+            <%= link_to "แก้ไข", edit_event_pricing_tier_path(t.id), class: "text-primary" %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2 class="mt-8 text-lg font-semibold text-ink">ราคาชดเชยคาร์บอน (offset pricing)</h2>
+<% @offset_sources.each do |source| %>
+  <h3 class="mt-4 font-medium text-ink"><%= source.name_th.presence || source.name %></h3>
+  <table class="mt-2 w-full max-w-3xl rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">ปริมาณ (ต่ำสุด)</th>
+        <th class="px-4 py-3">ปริมาณ (สูงสุด)</th>
+        <th class="px-4 py-3">ราคา/หน่วย (บาท)</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (@offset_tiers_by_source[source.id] || []).each do |t| %>
+        <tr class="border-b border-gray-100">
+          <td class="px-4 py-3"><%= t.min_emission %></td>
+          <td class="px-4 py-3"><%= t.max_emission || "ไม่จำกัด" %></td>
+          <td class="px-4 py-3 font-medium text-ink"><%= t.price_per_emission %></td>
+          <td class="px-4 py-3 text-right">
+            <% if can?(:manage_master_data) %>
+              <%= link_to "แก้ไข", edit_offset_pricing_tier_path(t.id), class: "text-primary" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

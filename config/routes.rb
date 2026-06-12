@@ -11,4 +11,12 @@ Rails.application.routes.draw do
   end
   resources :app_users, only: %i[index edit update]
   resources :emission_factors, only: %i[index new create edit update destroy]
+
+  get "pricing_tiers", to: "pricing_tiers#index", as: :pricing_tiers
+  get "pricing_tiers/event/:id/edit", to: "pricing_tiers#edit_event", as: :edit_event_pricing_tier
+  patch "pricing_tiers/event/:id", to: "pricing_tiers#update_event", as: :event_pricing_tier
+  get "pricing_tiers/offset/:id/edit", to: "pricing_tiers#edit_offset", as: :edit_offset_pricing_tier
+  patch "pricing_tiers/offset/:id", to: "pricing_tiers#update_offset", as: :offset_pricing_tier
+
+  resources :categories, only: %i[index edit update]
 end
