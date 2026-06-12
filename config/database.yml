@@ -10,7 +10,7 @@ default: &default
 
 development:
   <<: *default
-  database: <%= ENV.fetch("DB_NAME", "carbonmice") %>
+  database: <%= ENV.fetch("DB_NAME", "carbon-mice") %>
 
 # Own throwaway DB — full control, no shared data. Go-owned table structure
 # is loaded as a fixture in Plan 2 (db/core_structure.sql).

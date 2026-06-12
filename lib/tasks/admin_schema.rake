@@ -5,4 +5,6 @@ namespace :db do
   end
 end
 
-Rake::Task["db:migrate"].enhance(["db:ensure_admin_schema"])
+%w[db:migrate db:migrate:up db:migrate:down db:migrate:redo db:rollback db:forward].each do |task_name|
+  Rake::Task[task_name].enhance(["db:ensure_admin_schema"])
+end

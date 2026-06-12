@@ -37,5 +37,10 @@ module CarbonmiceAdmin
     # config.eager_load_paths << Rails.root.join("extras")
 
     config.active_record.schema_format = :sql
+
+    # This app shares the Go backend's database and owns only the `admin`
+    # schema. Destructive tasks (db:drop, db:truncate_all, db:schema:load …)
+    # must never run against the shared development database.
+    config.active_record.protected_environments = %w[development production]
   end
 end

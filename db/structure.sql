@@ -62,7 +62,7 @@ ALTER TABLE ONLY admin.schema_migrations
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO admin, public;
+SET search_path TO admin,public;
 
 
 
