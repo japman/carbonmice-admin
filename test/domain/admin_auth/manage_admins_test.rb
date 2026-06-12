@@ -76,4 +76,27 @@ class ManageAdminsTest < Minitest::Test
                                          id: row.id, attrs: { active: false })
     assert result.failure?
   end
+
+  def test_update_by_non_superadmin_is_denied
+    row = @repo.create(email_address: "y@pea.co.th", name: "วาย", password: "password-for-tests", role: "viewer")
+    result = AdminAuth::UpdateAdmin.call(actor: @admin, repo: @repo, audit: @audit,
+                                         id: row.id, attrs: { role: "admin" })
+    assert result.failure?
+    assert_empty @audit.entries
+  end
+
+  def test_update_of_unknown_id_fails_gracefully
+    result = AdminAuth::UpdateAdmin.call(actor: @superadmin, repo: @repo, audit: @audit,
+                                         id: 12345, attrs: { role: "admin" })
+    assert result.failure?
+    assert_equal "ไม่พบบัญชีผู้ดูแล", result.error
+  end
+
+  def test_active_diff_is_recorded_with_booleans
+    row = @repo.create(email_address: "z@pea.co.th", name: "แซด", password: "password-for-tests", role: "admin")
+    result = AdminAuth::UpdateAdmin.call(actor: @superadmin, repo: @repo, audit: @audit,
+                                         id: row.id, attrs: { active: false })
+    assert result.success?
+    assert_equal({ "active" => { "from" => true, "to" => false } }, @audit.entries.last[:changes])
+  end
 end

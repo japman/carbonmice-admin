@@ -43,4 +43,21 @@ class AdminUsersControllerTest < ActionDispatch::IntegrationTest
     patch admin_user_path(@superadmin), params: { admin_user: { active: false } }
     assert @superadmin.reload.active?
   end
+
+  test "self-edit guard cannot be bypassed with a zero-padded id" do
+    login(@superadmin)
+    patch admin_user_path(id: "0#{@superadmin.id}"), params: { admin_user: { active: false } }
+    assert @superadmin.reload.active?, "padded id must not bypass the self-edit guard"
+  end
+
+  test "viewer is denied from write paths" do
+    viewer = AdminUser.create!(email_address: "vw@pea.co.th",
+                               password: "password-for-tests", name: "วิว", role: :viewer)
+    login(viewer)
+    assert_no_difference -> { AdminUser.count } do
+      post admin_users_path, params: { admin_user: {
+        email_address: "x@pea.co.th", name: "เอ็กซ์", password: "password-for-tests", role: "admin" } }
+    end
+    assert_redirected_to root_path
+  end
 end
