@@ -11,7 +11,17 @@
     <%= javascript_importmap_tags %>
   </head>
   <body class="bg-surface text-body font-sans min-h-screen">
-    <%= render "shared/flash" %>
-    <%= yield %>
+    <% if authenticated? %>
+      <div class="flex min-h-screen">
+        <%= render "shared/sidebar" %>
+        <main class="flex-1 p-8">
+          <%= render "shared/flash" %>
+          <%= yield %>
+        </main>
+      </div>
+    <% else %>
+      <%= render "shared/flash" %>
+      <%= yield %>
+    <% end %>
   </body>
 </html>
