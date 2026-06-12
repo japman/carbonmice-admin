@@ -27,5 +27,6 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_select "nav a[href=?]", "/", count: 1
     assert_select "nav a[href=?]", "/admin_users", count: 0
+    assert_select "nav a[href=?]", "/audit_logs", count: 0
   end
 end

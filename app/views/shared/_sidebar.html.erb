@@ -2,7 +2,7 @@
   <div class="flex items-center gap-2 px-6 py-5">
     <%= image_tag "logo-carbonmice.png", alt: "carbon MICE", class: "w-36" %>
   </div>
-  <nav class="flex-1 space-y-1 px-3">
+  <nav class="flex-1 space-y-1 px-3" aria-label="เมนูหลัก">
     <%= link_to "หน้าหลัก", root_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% if can?(:manage_admin_users) %>
       <%= link_to "บัญชีผู้ดูแล", "/admin_users", class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
