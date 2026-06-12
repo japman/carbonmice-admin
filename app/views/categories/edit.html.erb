@@ -1,0 +1,11 @@
+<h1 class="text-2xl font-bold text-ink">แก้ชื่อหมวด: <span class="font-mono"><%= @category.name_eng %></span></h1>
+
+<%= form_with url: category_path(@category.id), method: :patch, scope: :category,
+      class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :name_thai, "ชื่อภาษาไทย", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name_thai, value: @category.name_thai, required: true, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
