@@ -1,0 +1,20 @@
+<h1 class="text-2xl font-bold text-ink">เปลี่ยนรหัสผ่าน</h1>
+
+<%= form_with url: password_path, method: :patch, class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :current_password, "รหัสผ่านปัจจุบัน", class: "mb-1 block font-medium text-ink" %>
+    <%= f.password_field :current_password, required: true, autocomplete: "current-password",
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :password, "รหัสผ่านใหม่ (อย่างน้อย 12 ตัวอักษร)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.password_field :password, required: true, minlength: 12, autocomplete: "new-password",
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :password_confirmation, "ยืนยันรหัสผ่านใหม่", class: "mb-1 block font-medium text-ink" %>
+    <%= f.password_field :password_confirmation, required: true, minlength: 12, autocomplete: "new-password",
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "เปลี่ยนรหัสผ่าน", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

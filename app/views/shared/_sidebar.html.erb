@@ -18,6 +18,7 @@
   <div class="border-t border-gray-200 px-6 py-4">
     <p class="text-sm font-medium text-ink"><%= current_admin.name %></p>
     <p class="text-xs text-body/60"><%= role_label(current_admin.role) %></p>
+    <%= link_to "เปลี่ยนรหัสผ่าน", edit_password_path, class: "mt-1 block text-sm text-primary" %>
     <%= button_to "ออกจากระบบ", session_path, method: :delete,
           class: "mt-2 cursor-pointer text-sm text-danger" %>
   </div>
