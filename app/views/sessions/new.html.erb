@@ -1,0 +1,23 @@
+<div class="min-h-screen grid lg:grid-cols-2">
+  <div class="flex flex-col items-center justify-center bg-white px-8 py-16">
+    <%= image_tag "logo-carbonmice.png", alt: "carbon MICE", class: "w-56 mb-10" %>
+    <h1 class="text-3xl font-bold text-ink">ยินดีต้อนรับ</h1>
+    <p class="mt-2 mb-8 text-body/70">เข้าสู่ระบบผู้ดูแลด้วยอีเมลของคุณ</p>
+
+    <%= form_with url: session_path, class: "w-full max-w-sm space-y-5" do |f| %>
+      <div>
+        <%= f.label :email_address, "อีเมล", class: "mb-1 block font-medium text-ink" %>
+        <%= f.email_field :email_address, required: true, autofocus: true,
+              class: "w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary" %>
+      </div>
+      <div>
+        <%= f.label :password, "รหัสผ่าน", class: "mb-1 block font-medium text-ink" %>
+        <%= f.password_field :password, required: true,
+              class: "w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary" %>
+      </div>
+      <%= f.submit "เข้าสู่ระบบ",
+            class: "w-full cursor-pointer rounded-lg bg-primary py-3 font-semibold text-white hover:bg-primary-dark" %>
+    <% end %>
+  </div>
+  <div class="hidden lg:block bg-[#7FA8D9]"></div>
+</div>

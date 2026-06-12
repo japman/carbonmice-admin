@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  /* Tokens verified against carbonmice-main-fe source — see spec §10 */
+  --font-sans: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #0065D0;
+  --color-primary-dark: #0052A8;
+  --color-danger: #D92D20;
+  --color-ink: #101828;
+  --color-body: #333741;
+  --color-surface: #F9FAFB;
+}
