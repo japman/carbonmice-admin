@@ -9,7 +9,7 @@ module Persistence
         target_id: target&.id&.to_s,
         change_set: changes,
         ip_address: ip,
-        user_agent: user_agent
+        user_agent: user_agent&.to_s&.truncate(512)
       )
     end
   end

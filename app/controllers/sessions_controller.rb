@@ -9,9 +9,13 @@ class SessionsController < ApplicationController
   def create
     admin = AdminUser.authenticate_by(email_address: params[:email_address], password: params[:password])
     if admin&.active?
-      start_new_session_for(admin)
-      audit_recorder.record(action: "auth.login_succeeded", actor: admin,
-                            ip: request.remote_ip, user_agent: request.user_agent)
+      # Session + audit succeed or fail together — no orphan sessions,
+      # no unaudited logins.
+      ApplicationRecord.transaction do
+        start_new_session_for(admin)
+        audit_recorder.record(action: "auth.login_succeeded", actor: admin,
+                              ip: request.remote_ip, user_agent: request.user_agent)
+      end
       redirect_to after_authentication_url
     else
       audit_recorder.record(action: "auth.login_failed",
@@ -22,9 +26,16 @@ class SessionsController < ApplicationController
   end
 
   def destroy
-    audit_recorder.record(action: "auth.logout", actor: current_admin,
-                          ip: request.remote_ip, user_agent: request.user_agent)
+    admin = current_admin
+    # Logout is security-critical: terminate first, audit after, and never
+    # let an audit failure keep the user logged in.
     terminate_session
+    begin
+      audit_recorder.record(action: "auth.logout", actor: admin,
+                            ip: request.remote_ip, user_agent: request.user_agent)
+    rescue => e
+      Rails.error.report(e, handled: true)
+    end
     redirect_to new_session_path, notice: "ออกจากระบบแล้ว"
   end
 
