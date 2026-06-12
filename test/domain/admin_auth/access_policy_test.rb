@@ -26,5 +26,11 @@ class AccessPolicyTest < Minitest::Test
     refute AdminAuth::AccessPolicy.allows?(role: "hacker", action: :view_operations)
     refute AdminAuth::AccessPolicy.allows?(role: "admin", action: :launch_rockets)
     refute AdminAuth::AccessPolicy.allows?(role: nil, action: :view_operations)
+    refute AdminAuth::AccessPolicy.allows?(role: "admin", action: nil)
+  end
+
+  def test_string_action_is_coerced
+    assert AdminAuth::AccessPolicy.allows?(role: "viewer", action: "view_operations"),
+           "string action should be coerced to symbol"
   end
 end
