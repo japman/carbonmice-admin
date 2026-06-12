@@ -1,0 +1,18 @@
+<h1 class="text-2xl font-bold text-ink">แก้ไขผู้ดูแล: <%= @admin_user.email_address %></h1>
+
+<%= form_with url: admin_user_path(@admin_user), method: :patch, scope: :admin_user, class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :name, "ชื่อ", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name, value: @admin_user.name, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :role, "สิทธิ์", class: "mb-1 block font-medium text-ink" %>
+    <%= f.select :role, [["Viewer", "viewer"], ["Admin", "admin"], ["Superadmin", "superadmin"]],
+          { selected: @admin_user.role }, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, checked: @admin_user.active?, class: "h-4 w-4" %>
+    <%= f.label :active, "เปิดใช้งานบัญชี", class: "font-medium text-ink" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
