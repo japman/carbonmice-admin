@@ -49,4 +49,12 @@ class ArEventRepositoryTest < ActiveSupport::TestCase
     assert_equal "ใหม่", event.name_thai
     assert_equal "เชียงใหม่", event.province
   end
+
+  test "update_details maps varchar overflow to ValidationFailed" do
+    event = create_core_event!
+    err = assert_raises(Ports::ValidationFailed) do
+      @repo.update_details(event.id, { name_thai: "ก" * 300 }, updated_by: "carbonmice-admin:sa@pea.co.th")
+    end
+    assert_match "255", err.message
+  end
 end
