@@ -74,4 +74,11 @@ class ManageAppUsersTest < Minitest::Test
                                       repo: @repo, audit: @audit).failure?
     assert_empty @audit_entries
   end
+
+  def test_quota_above_int4_is_rejected
+    result = AppUsers::AdjustQuota.call(actor: @actor, id: "u1", quota: 3_000_000_000,
+                                        repo: @repo, audit: @audit)
+    assert result.failure?
+    assert_equal 2, @repo.find("u1").event_quota
+  end
 end

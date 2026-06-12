@@ -9,6 +9,8 @@ module AppUsers
         nil
       end
       return Result.failure("โควต้าต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป") if quota.nil? || quota.negative?
+      # PG int4 bound — events_quota column is integer.
+      return Result.failure("โควต้าต้องไม่เกิน 2,147,483,647") if quota > 2_147_483_647
 
       before = repo.find(id)
       from = before.event_quota
