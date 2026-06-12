@@ -52,4 +52,25 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_redirected_to new_session_path
   end
+
+  test "successful login writes an audit entry" do
+    assert_difference -> { AuditLog.where(action: "auth.login_succeeded").count } do
+      post session_path, params: { email_address: "admin@pea.co.th", password: "password-for-tests" }
+    end
+    assert_equal @admin.id, AuditLog.order(:id).last.actor_id
+  end
+
+  test "failed login writes an audit entry with the attempted email" do
+    assert_difference -> { AuditLog.where(action: "auth.login_failed").count } do
+      post session_path, params: { email_address: "Nobody@pea.co.th", password: "wrong-password" }
+    end
+    assert_equal "nobody@pea.co.th", AuditLog.order(:id).last.actor_email
+  end
+
+  test "logout writes an audit entry" do
+    post session_path, params: { email_address: "admin@pea.co.th", password: "password-for-tests" }
+    assert_difference -> { AuditLog.where(action: "auth.logout").count } do
+      delete session_path
+    end
+  end
 end
