@@ -95,5 +95,6 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "collecting", event.reload.event_status
     patch event_path(event.id), params: { event: { name_thai: "ห้าม" } }
     assert_redirected_to root_path
+    assert_equal "งานทดสอบ", event.reload.name_thai
   end
 end
