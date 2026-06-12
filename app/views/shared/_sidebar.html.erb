@@ -4,6 +4,10 @@
   </div>
   <nav class="flex-1 space-y-1 px-3" aria-label="เมนูหลัก">
     <%= link_to "หน้าหลัก", root_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+    <% if can?(:view_operations) %>
+      <%= link_to "อีเว้นท์", events_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+      <%= link_to "ผู้ใช้งาน", app_users_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+    <% end %>
     <% if can?(:manage_admin_users) %>
       <%= link_to "บัญชีผู้ดูแล", admin_users_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% end %>
@@ -13,7 +17,7 @@
   </nav>
   <div class="border-t border-gray-200 px-6 py-4">
     <p class="text-sm font-medium text-ink"><%= current_admin.name %></p>
-    <p class="text-xs text-body/60"><%= current_admin.role %></p>
+    <p class="text-xs text-body/60"><%= role_label(current_admin.role) %></p>
     <%= button_to "ออกจากระบบ", session_path, method: :delete,
           class: "mt-2 cursor-pointer text-sm text-danger" %>
   </div>

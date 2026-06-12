@@ -17,7 +17,7 @@ module Persistence
         scope = scope.where("name_thai ILIKE :q OR name_eng ILIKE :q", q: q)
       end
       scope = scope.where(event_status: status) if status.present?
-      page = [page.to_i, 1].max
+      page = [ page.to_i, 1 ].max
       scope.limit(PAGE_SIZE + 1).offset((page - 1) * PAGE_SIZE)
     end
 

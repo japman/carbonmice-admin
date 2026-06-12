@@ -7,6 +7,10 @@
     {
       "fingerprint": "f6318e135187c26daad243edc717baa7c6c9f58ec47561a5c3d56758118eb425",
       "note": "role/active are intentionally settable: endpoint is superadmin-only (controller authorize! + domain AccessPolicy double gate), self-edit blocked, every change audited."
+    },
+    {
+      "fingerprint": "ee39592a2ea48312ceaf95f14739e4fbf86bbf8ee6d99eb8fda1854aa0054932",
+      "note": "role/event_quota are intentionally settable: endpoint is gated by authorize!(:manage_app_users) + domain AccessPolicy double gate, every change audited via ChangeRole/AdjustQuota use cases."
     }
   ]
 }

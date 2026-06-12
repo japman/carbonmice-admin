@@ -1,7 +1,7 @@
 module AppUsers
   class ChangeRole
     # Role strings used by the Go backend (internal user model).
-    ROLES = ["user", "admin", "super_admin"].freeze
+    ROLES = [ "user", "admin", "super_admin" ].freeze
 
     def self.call(actor:, id:, role:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการผู้ใช้งาน") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_app_users)

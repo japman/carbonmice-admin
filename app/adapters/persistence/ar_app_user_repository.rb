@@ -14,7 +14,7 @@ module Persistence
         q = "%#{ActiveRecord::Base.sanitize_sql_like(search)}%"
         scope = scope.where("email ILIKE :q OR display_name ILIKE :q", q: q)
       end
-      page = [page.to_i, 1].max
+      page = [ page.to_i, 1 ].max
       scope.limit(PAGE_SIZE + 1).offset((page - 1) * PAGE_SIZE)
     end
 

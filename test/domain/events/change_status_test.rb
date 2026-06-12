@@ -87,18 +87,18 @@ class ChangeStatusTest < Minitest::Test
     # (ValidateStatus). If the Go side changes, update BOTH (and re-verify
     # the two intentionally omitted targets, see TRANSITIONS comment).
     expected = {
-      "draft"            => ["draft", "pending_email_confirm", ""],
-      "email_confirmed"  => ["survey_published"],
-      "quotation_review" => ["quotation"],
-      "survey_published" => ["collecting"],
-      "collecting"       => ["quotation_review", "reject"],
-      "in_progress"      => ["collecting"],
-      "done"             => ["in_progress"],
-      "complete"         => ["done", "collecting"],
-      "carbon_credit"    => ["complete"],
-      "offset_carbon"    => ["complete", "carbon_credit"],
-      "send_data"        => ["complete", "offset_carbon"],
-      "reject"           => ["in_progress"]
+      "draft"            => [ "draft", "pending_email_confirm", "" ],
+      "email_confirmed"  => [ "survey_published" ],
+      "quotation_review" => [ "quotation" ],
+      "survey_published" => [ "collecting" ],
+      "collecting"       => [ "quotation_review", "reject" ],
+      "in_progress"      => [ "collecting" ],
+      "done"             => [ "in_progress" ],
+      "complete"         => [ "done", "collecting" ],
+      "carbon_credit"    => [ "complete" ],
+      "offset_carbon"    => [ "complete", "carbon_credit" ],
+      "send_data"        => [ "complete", "offset_carbon" ],
+      "reject"           => [ "in_progress" ]
     }
     assert_equal expected, Events::ChangeStatus::TRANSITIONS
     refute Events::ChangeStatus::TRANSITIONS.key?("pending_email_confirm")

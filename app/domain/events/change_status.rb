@@ -13,18 +13,18 @@ module Events
     # Admin changes are silent: no emails, no quota changes — every change
     # lands in the audit log instead.
     TRANSITIONS = {
-      "draft"            => ["draft", "pending_email_confirm", ""].freeze,
-      "email_confirmed"  => ["survey_published"].freeze,
-      "quotation_review" => ["quotation"].freeze,
-      "survey_published" => ["collecting"].freeze,
-      "collecting"       => ["quotation_review", "reject"].freeze,
-      "in_progress"      => ["collecting"].freeze,
-      "done"             => ["in_progress"].freeze,
-      "complete"         => ["done", "collecting"].freeze,
-      "carbon_credit"    => ["complete"].freeze,
-      "offset_carbon"    => ["complete", "carbon_credit"].freeze,
-      "send_data"        => ["complete", "offset_carbon"].freeze,
-      "reject"           => ["in_progress"].freeze
+      "draft"            => [ "draft", "pending_email_confirm", "" ].freeze,
+      "email_confirmed"  => [ "survey_published" ].freeze,
+      "quotation_review" => [ "quotation" ].freeze,
+      "survey_published" => [ "collecting" ].freeze,
+      "collecting"       => [ "quotation_review", "reject" ].freeze,
+      "in_progress"      => [ "collecting" ].freeze,
+      "done"             => [ "in_progress" ].freeze,
+      "complete"         => [ "done", "collecting" ].freeze,
+      "carbon_credit"    => [ "complete" ].freeze,
+      "offset_carbon"    => [ "complete", "carbon_credit" ].freeze,
+      "send_data"        => [ "complete", "offset_carbon" ].freeze,
+      "reject"           => [ "in_progress" ].freeze
     }.freeze
 
     def self.call(actor:, id:, to:, repo:, audit:)

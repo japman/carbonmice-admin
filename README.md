@@ -31,6 +31,10 @@ implementations, controllers/views = web adapter).
 
 - Everything: `bin/rails test` (uses its own `carbonmice_admin_test` DB)
 - Domain only (no Rails): `for f in test/domain/**/*_test.rb; do ruby -Itest "$f"; done`
+- Go-schema fixture: `db/core_structure.sql` is a structure-only snapshot of the
+  shared DB's `public` schema, loaded into the test DB on boot. When the Go team
+  migrates, regenerate it:
+  `pg_dump "$DEV_DB_URL" --schema=public --schema-only --no-owner --no-privileges | grep -v '^\\' > db/core_structure.sql`
 
 ## Security notes
 
@@ -45,6 +49,9 @@ implementations, controllers/views = web adapter).
   DB-level `REVOKE UPDATE/DELETE` hardening lands with least-privilege grants
   in Phase 2. Visibility is controlled solely by `AdminAuth::AccessPolicy`
   (currently superadmin) — granting other roles later is a one-line change.
+- Admin writes to Go-owned rows stamp `updated_by = "carbonmice-admin:<email>"`
+  and are limited to: event descriptive fields, event_status (validated
+  transitions, no Go-side side effects), users.role and users.event_quota.
 
 ## Spec & plans
 

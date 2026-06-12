@@ -54,6 +54,6 @@ module CoreFactories
   private
 
     def sanitize_sql(sql, *binds)
-      ActiveRecord::Base.sanitize_sql_array([sql, *binds])
+      ActiveRecord::Base.sanitize_sql_array([ sql, *binds ])
     end
 end

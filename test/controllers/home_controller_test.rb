@@ -22,7 +22,14 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav a[href=?]", "/audit_logs", count: 0
   end
 
-  test "viewer sees only the home link" do
+  test "all roles see events and app-users links" do
+    login_as(:viewer)
+    get root_path
+    assert_select "nav a[href=?]", "/events"
+    assert_select "nav a[href=?]", "/app_users"
+  end
+
+  test "viewer sees no management links" do
     login_as(:viewer)
     get root_path
     assert_select "nav a[href=?]", "/", count: 1
