@@ -69,6 +69,43 @@ CREATE TABLE admin.ar_internal_metadata (
 
 
 --
+-- Name: audit_logs; Type: TABLE; Schema: admin; Owner: -
+--
+
+CREATE TABLE admin.audit_logs (
+    id bigint NOT NULL,
+    actor_id bigint,
+    actor_email character varying,
+    action character varying NOT NULL,
+    target_type character varying,
+    target_id character varying,
+    change_set jsonb DEFAULT '{}'::jsonb NOT NULL,
+    ip_address character varying,
+    user_agent character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: audit_logs_id_seq; Type: SEQUENCE; Schema: admin; Owner: -
+--
+
+CREATE SEQUENCE admin.audit_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: -
+--
+
+ALTER SEQUENCE admin.audit_logs_id_seq OWNED BY admin.audit_logs.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: admin; Owner: -
 --
 
@@ -118,6 +155,13 @@ ALTER TABLE ONLY admin.admin_users ALTER COLUMN id SET DEFAULT nextval('admin.ad
 
 
 --
+-- Name: audit_logs id; Type: DEFAULT; Schema: admin; Owner: -
+--
+
+ALTER TABLE ONLY admin.audit_logs ALTER COLUMN id SET DEFAULT nextval('admin.audit_logs_id_seq'::regclass);
+
+
+--
 -- Name: sessions id; Type: DEFAULT; Schema: admin; Owner: -
 --
 
@@ -138,6 +182,14 @@ ALTER TABLE ONLY admin.admin_users
 
 ALTER TABLE ONLY admin.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: admin; Owner: -
+--
+
+ALTER TABLE ONLY admin.audit_logs
+    ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -164,10 +216,39 @@ CREATE UNIQUE INDEX index_admin_users_on_email_address ON admin.admin_users USIN
 
 
 --
+-- Name: index_audit_logs_on_action; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_action ON admin.audit_logs USING btree (action);
+
+
+--
+-- Name: index_audit_logs_on_actor_id; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_actor_id ON admin.audit_logs USING btree (actor_id);
+
+
+--
+-- Name: index_audit_logs_on_created_at; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_created_at ON admin.audit_logs USING btree (created_at);
+
+
+--
 -- Name: index_sessions_on_admin_user_id; Type: INDEX; Schema: admin; Owner: -
 --
 
 CREATE INDEX index_sessions_on_admin_user_id ON admin.sessions USING btree (admin_user_id);
+
+
+--
+-- Name: audit_logs fk_rails_2c3f85fdd5; Type: FK CONSTRAINT; Schema: admin; Owner: -
+--
+
+ALTER TABLE ONLY admin.audit_logs
+    ADD CONSTRAINT fk_rails_2c3f85fdd5 FOREIGN KEY (actor_id) REFERENCES admin.admin_users(id);
 
 
 --
@@ -185,5 +266,6 @@ ALTER TABLE ONLY admin.sessions
 SET search_path TO admin, public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260612113209'),
 ('20260612092717');
 
