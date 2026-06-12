@@ -81,4 +81,27 @@ class ChangeStatusTest < Minitest::Test
     assert result.failure?
     assert_equal "ไม่พบอีเว้นท์", result.error
   end
+
+  def test_transition_table_mirrors_go_validate_status
+    # Pinned against carbonmice-main-go-be/internal/model/event.go:444
+    # (ValidateStatus). If the Go side changes, update BOTH (and re-verify
+    # the two intentionally omitted targets, see TRANSITIONS comment).
+    expected = {
+      "draft"            => ["draft", "pending_email_confirm", ""],
+      "email_confirmed"  => ["survey_published"],
+      "quotation_review" => ["quotation"],
+      "survey_published" => ["collecting"],
+      "collecting"       => ["quotation_review", "reject"],
+      "in_progress"      => ["collecting"],
+      "done"             => ["in_progress"],
+      "complete"         => ["done", "collecting"],
+      "carbon_credit"    => ["complete"],
+      "offset_carbon"    => ["complete", "carbon_credit"],
+      "send_data"        => ["complete", "offset_carbon"],
+      "reject"           => ["in_progress"]
+    }
+    assert_equal expected, Events::ChangeStatus::TRANSITIONS
+    refute Events::ChangeStatus::TRANSITIONS.key?("pending_email_confirm")
+    refute Events::ChangeStatus::TRANSITIONS.key?("quotation")
+  end
 end

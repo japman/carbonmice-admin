@@ -19,7 +19,7 @@
 **Verified Go-schema facts used throughout (from live DB + Go source):**
 - `public.events`: uuid PK, `name_thai`/`name_eng`, `area_name`, `province`, `event_status` varchar (a STRING, not FK), `payment_status` (CHECK pending_payment/paid), `created_by` varchar NOT NULL (user raw_id), `event_template_id` uuid NOT NULL FK, `deleted_at` soft delete, computed flags like `quota_deducted` (never write).
 - `public.event_statuses`: 13 rows, `name_eng`/`name_thai`/`running_order` — display catalog only.
-- Status transitions: Go `ValidateStatus` (internal/model/event.go:444). `draft→pending_email_confirm` ALSO sends email + deducts quota (EscalateEventStatus) — the admin app must NOT offer it.
+- Status transitions: Go `ValidateStatus` (internal/model/event.go:444) — mostly backward corrections; forward flow lives in `EscalateEventStatus` (email + quota side effects). The admin table mirrors ValidateStatus minus the `pending_email_confirm` and `quotation` targets.
 - `public.users`: uuid PK, `raw_id` NOT NULL, `email`, `display_name`, `role` varchar (values: user / admin / super_admin / visitor), `event_quota` int default 0, `is_package_user` bool, `deleted_at`.
 - `public.carbon_emissions`: `event_id`/`carbon_category_id`/`unit_id` uuid NOT NULL FKs, `pre_event_emission` NOT NULL numeric, `post_event_emission` numeric.
 - Test-factory FK chains: events ← event_templates(name, license_fee, created_by, event_type_id NOT NULL) ← event_types(name, created_by); carbon_categories ← carbon_scopes(name CHECK IN scope_1/2/3, created_by).
@@ -397,6 +397,29 @@ class ChangeStatusTest < Minitest::Test
     assert result.failure?
     assert_equal "ไม่พบอีเว้นท์", result.error
   end
+
+  def test_transition_table_mirrors_go_validate_status
+    # Pinned against carbonmice-main-go-be/internal/model/event.go:444
+    # (ValidateStatus). If the Go side changes, update BOTH (and re-verify
+    # the two intentionally omitted targets, see TRANSITIONS comment).
+    expected = {
+      "draft"            => ["draft", "pending_email_confirm", ""],
+      "email_confirmed"  => ["survey_published"],
+      "quotation_review" => ["quotation"],
+      "survey_published" => ["collecting"],
+      "collecting"       => ["quotation_review", "reject"],
+      "in_progress"      => ["collecting"],
+      "done"             => ["in_progress"],
+      "complete"         => ["done", "collecting"],
+      "carbon_credit"    => ["complete"],
+      "offset_carbon"    => ["complete", "carbon_credit"],
+      "send_data"        => ["complete", "offset_carbon"],
+      "reject"           => ["in_progress"]
+    }
+    assert_equal expected, Events::ChangeStatus::TRANSITIONS
+    refute Events::ChangeStatus::TRANSITIONS.key?("pending_email_confirm")
+    refute Events::ChangeStatus::TRANSITIONS.key?("quotation")
+  end
 end
 ```
 
@@ -437,24 +460,30 @@ end
 module Events
   class ChangeStatus
     # allowed[new_status] = statuses an event may move FROM.
-    # Mirrors the Go backend's ValidateStatus (internal/model/event.go:444)
-    # MINUS draft→pending_email_confirm, whose Go-side side effects
-    # (verification email, quota deduction) this app cannot replicate.
-    # Admin changes are silent corrections: no emails, no quota changes —
-    # every change lands in the audit log instead.
+    # Mirrors the Go backend's ValidateStatus map (internal/model/event.go:444)
+    # exactly, EXCEPT two targets are intentionally absent:
+    # - "pending_email_confirm": in Go, entering this status normally happens
+    #   via EscalateEventStatus (verification email + quota deduction) which
+    #   this app cannot replicate; the PATCH-only backward correction
+    #   email_confirmed→pending_email_confirm is conservatively omitted too.
+    # - "quotation": not a row in the event_statuses catalog; Go-internal.
+    # NOTE: Go's table is mostly BACKWARD corrections (the forward flow lives
+    # in EscalateEventStatus) — that suits an admin correction tool exactly.
+    # Admin changes are silent: no emails, no quota changes — every change
+    # lands in the audit log instead.
     TRANSITIONS = {
-      "draft"            => ["draft", "pending_email_confirm", ""],
-      "email_confirmed"  => ["pending_email_confirm"],
-      "quotation_review" => ["collecting"],
-      "survey_published" => ["email_confirmed"],
-      "collecting"       => ["survey_published"],
-      "in_progress"      => ["collecting"],
-      "done"             => ["in_progress"],
-      "complete"         => ["done", "collecting"],
-      "carbon_credit"    => ["complete"],
-      "offset_carbon"    => ["complete", "carbon_credit"],
-      "send_data"        => ["complete", "offset_carbon"],
-      "reject"           => ["in_progress"]
+      "draft"            => ["draft", "pending_email_confirm", ""].freeze,
+      "email_confirmed"  => ["survey_published"].freeze,
+      "quotation_review" => ["quotation"].freeze,
+      "survey_published" => ["collecting"].freeze,
+      "collecting"       => ["quotation_review", "reject"].freeze,
+      "in_progress"      => ["collecting"].freeze,
+      "done"             => ["in_progress"].freeze,
+      "complete"         => ["done", "collecting"].freeze,
+      "carbon_credit"    => ["complete"].freeze,
+      "offset_carbon"    => ["complete", "carbon_credit"].freeze,
+      "send_data"        => ["complete", "offset_carbon"].freeze,
+      "reject"           => ["in_progress"].freeze
     }.freeze
 
     def self.call(actor:, id:, to:, repo:, audit:)

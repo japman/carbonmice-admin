@@ -1,24 +1,30 @@
 module Events
   class ChangeStatus
     # allowed[new_status] = statuses an event may move FROM.
-    # Mirrors the Go backend's ValidateStatus (internal/model/event.go:444)
-    # MINUS draft→pending_email_confirm, whose Go-side side effects
-    # (verification email, quota deduction) this app cannot replicate.
-    # Admin changes are silent corrections: no emails, no quota changes —
-    # every change lands in the audit log instead.
+    # Mirrors the Go backend's ValidateStatus map (internal/model/event.go:444)
+    # exactly, EXCEPT two targets are intentionally absent:
+    # - "pending_email_confirm": in Go, entering this status normally happens
+    #   via EscalateEventStatus (verification email + quota deduction) which
+    #   this app cannot replicate; the PATCH-only backward correction
+    #   email_confirmed→pending_email_confirm is conservatively omitted too.
+    # - "quotation": not a row in the event_statuses catalog; Go-internal.
+    # NOTE: Go's table is mostly BACKWARD corrections (the forward flow lives
+    # in EscalateEventStatus) — that suits an admin correction tool exactly.
+    # Admin changes are silent: no emails, no quota changes — every change
+    # lands in the audit log instead.
     TRANSITIONS = {
-      "draft"            => ["draft", "pending_email_confirm", ""],
-      "email_confirmed"  => ["pending_email_confirm"],
-      "quotation_review" => ["collecting"],
-      "survey_published" => ["email_confirmed"],
-      "collecting"       => ["survey_published"],
-      "in_progress"      => ["collecting"],
-      "done"             => ["in_progress"],
-      "complete"         => ["done", "collecting"],
-      "carbon_credit"    => ["complete"],
-      "offset_carbon"    => ["complete", "carbon_credit"],
-      "send_data"        => ["complete", "offset_carbon"],
-      "reject"           => ["in_progress"]
+      "draft"            => ["draft", "pending_email_confirm", ""].freeze,
+      "email_confirmed"  => ["survey_published"].freeze,
+      "quotation_review" => ["quotation"].freeze,
+      "survey_published" => ["collecting"].freeze,
+      "collecting"       => ["quotation_review", "reject"].freeze,
+      "in_progress"      => ["collecting"].freeze,
+      "done"             => ["in_progress"].freeze,
+      "complete"         => ["done", "collecting"].freeze,
+      "carbon_credit"    => ["complete"].freeze,
+      "offset_carbon"    => ["complete", "carbon_credit"].freeze,
+      "send_data"        => ["complete", "offset_carbon"].freeze,
+      "reject"           => ["in_progress"].freeze
     }.freeze
 
     def self.call(actor:, id:, to:, repo:, audit:)
