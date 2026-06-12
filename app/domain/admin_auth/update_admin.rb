@@ -10,9 +10,9 @@ module AdminAuth
       # superadmins: only superadmins can demote/deactivate, and never themselves.
       return Result.failure("ไม่สามารถแก้ไขบัญชีของตัวเองได้") if before.id == actor.id
 
-      snapshot = attrs.keys.to_h { |k| [k.to_s, before.public_send(k)] }
+      snapshot = attrs.keys.to_h { |k| [ k.to_s, before.public_send(k) ] }
       record = repo.update(id, **attrs)
-      diff = attrs.keys.to_h { |k| [k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) }] }
+      diff = attrs.keys.to_h { |k| [ k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) } ] }
       audit.record(action: "admin_users.updated", actor: actor, target: record, changes: diff)
       Result.success(record)
     rescue Ports::NotFound

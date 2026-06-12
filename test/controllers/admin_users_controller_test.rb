@@ -60,4 +60,10 @@ class AdminUsersControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to root_path
   end
+
+  test "edit of unknown id redirects with alert" do
+    login(@superadmin)
+    get edit_admin_user_path(id: 999_999)
+    assert_redirected_to admin_users_path
+  end
 end

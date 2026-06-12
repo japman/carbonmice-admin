@@ -30,7 +30,7 @@ implementations, controllers/views = web adapter).
 ## Tests
 
 - Everything: `bin/rails test` (uses its own `carbonmice_admin_test` DB)
-- Domain only (no Rails): `ruby -Itest test/domain/**/*_test.rb`
+- Domain only (no Rails): `for f in test/domain/**/*_test.rb; do ruby -Itest "$f"; done`
 
 ## Security notes
 

@@ -47,9 +47,9 @@ class AuditLogsControllerTest < ActionDispatch::IntegrationTest
   test "from-date filter excludes earlier entries" do
     login(@superadmin)
     # AuditLog is readonly at the instance level; insert_all bypasses the guard to set a past created_at.
-    AuditLog.insert_all([{ action: "admin_users.created", actor_id: @superadmin.id,
+    AuditLog.insert_all([ { action: "admin_users.created", actor_id: @superadmin.id,
                            actor_email: @superadmin.email_address, change_set: {},
-                           created_at: 3.days.ago }])
+                           created_at: 3.days.ago } ])
     get audit_logs_path, params: { action_prefix: "admin_users.", from: Date.current.to_s }
     assert_select "td", text: "admin_users.created", count: 0
   end
@@ -64,5 +64,11 @@ class AuditLogsControllerTest < ActionDispatch::IntegrationTest
     AuditLog.insert_all(rows)
     get audit_logs_path
     assert_match "อาจถูกตัดทอน", response.body
+  end
+
+  test "malformed date params are ignored" do
+    login(@superadmin)
+    get audit_logs_path, params: { from: "banana", to: "also-banana" }
+    assert_response :success
   end
 end

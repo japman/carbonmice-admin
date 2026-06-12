@@ -20,6 +20,8 @@ class AdminUsersController < ApplicationController
 
   def edit
     @admin_user = repo.find(params[:id])
+  rescue Ports::NotFound
+    redirect_to admin_users_path, alert: "ไม่พบบัญชีผู้ดูแล"
   end
 
   def update

@@ -5,10 +5,10 @@
   <nav class="flex-1 space-y-1 px-3" aria-label="เมนูหลัก">
     <%= link_to "หน้าหลัก", root_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% if can?(:manage_admin_users) %>
-      <%= link_to "บัญชีผู้ดูแล", "/admin_users", class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+      <%= link_to "บัญชีผู้ดูแล", admin_users_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% end %>
     <% if can?(:view_audit_log) %>
-      <%= link_to "บันทึกการใช้งาน", "/audit_logs", class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+      <%= link_to "บันทึกการใช้งาน", audit_logs_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% end %>
   </nav>
   <div class="border-t border-gray-200 px-6 py-4">

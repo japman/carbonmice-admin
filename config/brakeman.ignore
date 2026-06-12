@@ -1,0 +1,12 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "95b3c2b68e64453579304874b1cf07de9712c1aa3124aadf50f1432dad72f985",
+      "note": "role/active are intentionally settable: endpoint is superadmin-only (controller authorize! + domain AccessPolicy double gate), self-edit blocked, every change audited."
+    },
+    {
+      "fingerprint": "f6318e135187c26daad243edc717baa7c6c9f58ec47561a5c3d56758118eb425",
+      "note": "role/active are intentionally settable: endpoint is superadmin-only (controller authorize! + domain AccessPolicy double gate), self-edit blocked, every change audited."
+    }
+  ]
+}
