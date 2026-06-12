@@ -248,7 +248,7 @@ CREATE INDEX index_sessions_on_admin_user_id ON admin.sessions USING btree (admi
 --
 
 ALTER TABLE ONLY admin.audit_logs
-    ADD CONSTRAINT fk_rails_2c3f85fdd5 FOREIGN KEY (actor_id) REFERENCES admin.admin_users(id);
+    ADD CONSTRAINT fk_rails_2c3f85fdd5 FOREIGN KEY (actor_id) REFERENCES admin.admin_users(id) ON DELETE SET NULL;
 
 
 --
@@ -263,9 +263,10 @@ ALTER TABLE ONLY admin.sessions
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO admin, public;
+SET search_path TO admin,public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260612114419'),
 ('20260612113209'),
 ('20260612092717');
 
