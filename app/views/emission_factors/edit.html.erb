@@ -1,0 +1,32 @@
+<h1 class="text-2xl font-bold text-ink">แก้ไขค่า EF: <span class="font-mono"><%= @factor.identifier %></span></h1>
+
+<%= form_with url: emission_factor_path(@factor.id), method: :patch, scope: :emission_factor,
+      class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :identifier, "identifier (ระบบหลักใช้ค้นหา — แก้ไขไม่ได้)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :identifier, value: @factor.identifier, disabled: true,
+          class: "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 font-mono text-body/60" %>
+  </div>
+  <div>
+    <%= f.label :name, "ชื่อ", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name, value: @factor.name, maxlength: 255, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :description, "คำอธิบาย", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_area :description, value: @factor.description, rows: 2, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :source, "แหล่งอ้างอิง", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :source, value: @factor.source, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :value_per_unit, "ค่า (ต่อหน่วย)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :value_per_unit, value: @factor.value_per_unit, step: "any", min: 0,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :unit_title, "หน่วย", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :unit_title, value: @factor.unit_title, maxlength: 255, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

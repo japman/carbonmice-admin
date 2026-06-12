@@ -10,4 +10,5 @@ Rails.application.routes.draw do
     member { patch :status }
   end
   resources :app_users, only: %i[index edit update]
+  resources :emission_factors, only: %i[index new create edit update destroy]
 end
