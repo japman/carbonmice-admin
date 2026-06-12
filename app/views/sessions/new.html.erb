@@ -7,12 +7,12 @@
     <%= form_with url: session_path, class: "w-full max-w-sm space-y-5" do |f| %>
       <div>
         <%= f.label :email_address, "อีเมล", class: "mb-1 block font-medium text-ink" %>
-        <%= f.email_field :email_address, required: true, autofocus: true,
+        <%= f.email_field :email_address, required: true, autofocus: true, autocomplete: "username",
               class: "w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary" %>
       </div>
       <div>
         <%= f.label :password, "รหัสผ่าน", class: "mb-1 block font-medium text-ink" %>
-        <%= f.password_field :password, required: true,
+        <%= f.password_field :password, required: true, autocomplete: "current-password",
               class: "w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary" %>
       </div>
       <%= f.submit "เข้าสู่ระบบ",

@@ -36,4 +36,20 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_redirected_to new_session_path
   end
+
+  test "deactivation mid-session locks the admin out on next request" do
+    post session_path, params: { email_address: "admin@pea.co.th", password: "password-for-tests" }
+    get root_path
+    assert_response :success
+    @admin.update!(active: false)
+    get root_path
+    assert_redirected_to new_session_path
+  end
+
+  test "sessions older than 30 days are rejected" do
+    post session_path, params: { email_address: "admin@pea.co.th", password: "password-for-tests" }
+    @admin.sessions.last.update!(created_at: 31.days.ago)
+    get root_path
+    assert_redirected_to new_session_path
+  end
 end

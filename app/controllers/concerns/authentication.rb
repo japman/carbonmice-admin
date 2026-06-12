@@ -1,6 +1,8 @@
 module Authentication
   extend ActiveSupport::Concern
 
+  SESSION_LIFETIME = 30.days
+
   included do
     before_action :require_authentication
     helper_method :authenticated?, :current_admin
@@ -29,6 +31,7 @@ module Authentication
       return nil unless (id = cookies.signed[:session_id])
       session = Session.includes(:admin_user).find_by(id: id)
       return nil unless session&.admin_user&.active?
+      return nil if session.created_at < SESSION_LIFETIME.ago
       session
     end
 
@@ -44,7 +47,7 @@ module Authentication
     def start_new_session_for(admin_user)
       admin_user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |new_session|
         Current.session = new_session
-        cookies.signed.permanent[:session_id] = { value: new_session.id, httponly: true, same_site: :lax }
+        cookies.signed[:session_id] = { value: new_session.id, httponly: true, same_site: :lax, expires: SESSION_LIFETIME.from_now }
       end
     end
 
