@@ -30,6 +30,7 @@ implementations, controllers/views = web adapter).
 ## Tests
 
 - Everything: `bin/rails test` (uses its own `carbonmice_admin_test` DB)
+- System tests: `bin/rails test:system` (rack_test driver — no browser needed)
 - Domain only (no Rails): `for f in test/domain/**/*_test.rb; do ruby -Itest "$f"; done`
 - Go-schema fixture: `db/core_structure.sql` is a structure-only snapshot of the
   shared DB's `public` schema, loaded into the test DB on boot. When the Go team
@@ -58,4 +59,5 @@ implementations, controllers/views = web adapter).
 - Spec: `docs/superpowers/specs/2026-06-12-admin-panel-design.md`
 - Plan 1 (done): `docs/superpowers/plans/2026-06-12-admin-foundation.md`
 - Plan 2 (done): `docs/superpowers/plans/2026-06-12-admin-core-events-users.md`
-- Phase 3 (master data, dashboard, system tests, Dockerfile + GitLab CI) is written next.
+- Plan 3 (done): `docs/superpowers/plans/2026-06-13-admin-masterdata-dashboard.md`
+- Plan 4 (next): deployment + hardening (Dockerfile, GitLab CI, least-privilege DB role).

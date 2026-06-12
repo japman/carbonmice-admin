@@ -1,6 +1,6 @@
 module MasterData
   class UpdateEventPricingTier
-    EDITABLE = [:min_participants, :max_participants, :price_per_person].freeze
+    EDITABLE = [ :min_participants, :max_participants, :price_per_person ].freeze
 
     def self.call(actor:, id:, attrs:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการข้อมูลหลัก") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_master_data)
@@ -24,9 +24,9 @@ module MasterData
         return Result.failure("ช่วงผู้เข้าร่วมทับซ้อนกับระดับราคาอื่น")
       end
 
-      snapshot = attrs.keys.to_h { |k| [k.to_s, before.public_send(k)] }
+      snapshot = attrs.keys.to_h { |k| [ k.to_s, before.public_send(k) ] }
       record = repo.update(id, parsed[:attrs], updated_by: AuditIdentity.for(actor))
-      diff = attrs.keys.to_h { |k| [k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) }] }
+      diff = attrs.keys.to_h { |k| [ k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) } ] }
       audit.record(action: "master_data.event_tier_updated", actor: actor, target: record, changes: diff)
       Result.success(record)
     rescue Ports::NotFound

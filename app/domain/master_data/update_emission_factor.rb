@@ -1,7 +1,7 @@
 module MasterData
   class UpdateEmissionFactor
     # identifier is IMMUTABLE: the Go backend looks factors up by it.
-    EDITABLE = [:name, :description, :source, :value_per_unit, :unit_title].freeze
+    EDITABLE = [ :name, :description, :source, :value_per_unit, :unit_title ].freeze
 
     def self.call(actor:, id:, attrs:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการข้อมูลหลัก") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_master_data)
@@ -18,9 +18,9 @@ module MasterData
       end
 
       before = repo.find(id)
-      snapshot = attrs.keys.to_h { |k| [k.to_s, before.public_send(k)] }
+      snapshot = attrs.keys.to_h { |k| [ k.to_s, before.public_send(k) ] }
       record = repo.update(id, attrs, updated_by: AuditIdentity.for(actor))
-      diff = attrs.keys.to_h { |k| [k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) }] }
+      diff = attrs.keys.to_h { |k| [ k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) } ] }
       audit.record(action: "master_data.factor_updated", actor: actor, target: record, changes: diff)
       Result.success(record)
     rescue Ports::NotFound

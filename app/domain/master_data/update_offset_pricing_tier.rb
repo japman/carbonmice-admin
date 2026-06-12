@@ -1,6 +1,6 @@
 module MasterData
   class UpdateOffsetPricingTier
-    EDITABLE = [:min_emission, :max_emission, :price_per_emission].freeze
+    EDITABLE = [ :min_emission, :max_emission, :price_per_emission ].freeze
 
     def self.call(actor:, id:, attrs:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการข้อมูลหลัก") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_master_data)
@@ -24,9 +24,9 @@ module MasterData
         return Result.failure("ช่วงปริมาณคาร์บอนทับซ้อนกับระดับราคาอื่นในแหล่งเดียวกัน")
       end
 
-      snapshot = attrs.keys.to_h { |k| [k.to_s, before.public_send(k)] }
+      snapshot = attrs.keys.to_h { |k| [ k.to_s, before.public_send(k) ] }
       record = repo.update(id, parsed[:attrs], updated_by: AuditIdentity.for(actor))
-      diff = attrs.keys.to_h { |k| [k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) }] }
+      diff = attrs.keys.to_h { |k| [ k.to_s, { "from" => snapshot[k.to_s], "to" => record.public_send(k) } ] }
       audit.record(action: "master_data.offset_tier_updated", actor: actor, target: record, changes: diff)
       Result.success(record)
     rescue Ports::NotFound

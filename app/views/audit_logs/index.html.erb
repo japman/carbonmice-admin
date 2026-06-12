@@ -5,7 +5,7 @@
     <%= f.label :action_prefix, "ประเภท", class: "mb-1 block text-sm font-medium text-ink" %>
     <%= f.select :action_prefix,
           [["ทั้งหมด", ""], ["การเข้าสู่ระบบ", "auth."], ["บัญชีผู้ดูแล", "admin_users."],
-           ["อีเว้นท์", "events."], ["ผู้ใช้งานระบบหลัก", "app_users."]],
+           ["อีเว้นท์", "events."], ["ผู้ใช้งานระบบหลัก", "app_users."], ["ข้อมูลหลัก", "master_data."]],
           { selected: params[:action_prefix] }, class: "rounded-lg border border-gray-300 px-3 py-2" %>
   </div>
   <div>

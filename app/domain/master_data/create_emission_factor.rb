@@ -1,7 +1,7 @@
 module MasterData
   class CreateEmissionFactor
-    REQUIRED = [:identifier, :name, :source, :value_per_unit, :unit_title, :carbon_category_id].freeze
-    OPTIONAL = [:description].freeze
+    REQUIRED = [ :identifier, :name, :source, :value_per_unit, :unit_title, :carbon_category_id ].freeze
+    OPTIONAL = [ :description ].freeze
     # Matches existing Go identifiers (ef_car_private_gasoline_km ...).
     IDENTIFIER_FORMAT = /\A[a-z0-9_.]+\z/
 

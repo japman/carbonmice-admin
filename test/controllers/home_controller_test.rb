@@ -27,6 +27,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_select "nav a[href=?]", "/events"
     assert_select "nav a[href=?]", "/app_users"
+    assert_select "nav a[href=?]", "/emission_factors"
+    assert_select "nav a[href=?]", "/pricing_tiers"
+    assert_select "nav a[href=?]", "/categories"
   end
 
   test "viewer sees no management links" do

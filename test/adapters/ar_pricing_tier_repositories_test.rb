@@ -8,7 +8,7 @@ class ArPricingTierRepositoriesTest < ActiveSupport::TestCase
     repo.update(t1.id, { price_per_person: 6.0 }, updated_by: "carbonmice-admin:sa@pea.co.th")
     assert_equal 6.0, t1.reload.price_per_person.to_f
     assert_equal "carbonmice-admin:sa@pea.co.th", t1.reload.updated_by
-    assert_equal [1, 101], repo.list.map(&:min_participants)
+    assert_equal [ 1, 101 ], repo.list.map(&:min_participants)
   end
 
   test "offset tier list scopes by source" do
