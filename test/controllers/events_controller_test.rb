@@ -55,4 +55,45 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     get event_path("not-a-uuid")
     assert_redirected_to events_path
   end
+
+  test "superadmin edits safe fields with an audit diff" do
+    login(@superadmin)
+    event = create_core_event!(name_thai: "เดิม")
+    get edit_event_path(event.id)
+    assert_response :success
+
+    assert_difference -> { AuditLog.where(action: "events.updated").count } => 1 do
+      patch event_path(event.id), params: { event: { name_thai: "ใหม่", province: "ขอนแก่น" } }
+    end
+    assert_redirected_to event_path(event.id)
+    assert_equal "ใหม่", event.reload.name_thai
+    log = AuditLog.where(action: "events.updated").order(:id).last
+    assert_equal "ใหม่", log.change_set.dig("name_thai", "to")
+  end
+
+  test "status change follows the transition table and audits" do
+    login(@superadmin)
+    event = create_core_event!(status: "collecting")
+    assert_difference -> { AuditLog.where(action: "events.status_changed").count } => 1 do
+      patch status_event_path(event.id), params: { to: "in_progress" }
+    end
+    assert_equal "in_progress", event.reload.event_status
+
+    assert_no_difference -> { AuditLog.where(action: "events.status_changed").count } do
+      patch status_event_path(event.id), params: { to: "draft" }   # not allowed from in_progress
+    end
+    assert_equal "in_progress", event.reload.event_status
+  end
+
+  test "viewer cannot change status or edit" do
+    viewer = AdminUser.create!(email_address: "v2@pea.co.th",
+                               password: "password-for-tests", name: "วิว", role: :viewer)
+    login(viewer)
+    event = create_core_event!(status: "collecting")
+    patch status_event_path(event.id), params: { to: "in_progress" }
+    assert_redirected_to root_path
+    assert_equal "collecting", event.reload.event_status
+    patch event_path(event.id), params: { event: { name_thai: "ห้าม" } }
+    assert_redirected_to root_path
+  end
 end
