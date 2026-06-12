@@ -15,7 +15,7 @@ class CategoriesController < ApplicationController
 
   def update
     result = MasterData::RenameCategory.call(actor: current_admin, id: params[:id],
-                                             name_thai: params.require(:category)[:name_thai],
+                                             name_thai: params.require(:category).permit(:name_thai)[:name_thai],
                                              repo: repo, audit: audit)
     if result.success?
       redirect_to categories_path, notice: "บันทึกชื่อหมวดแล้ว"
