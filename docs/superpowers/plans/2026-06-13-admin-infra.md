@@ -91,19 +91,23 @@ Solid Cache decision, no external cron):
 - Production runs the supervisor **in-Puma** via `plugin :solid_queue if SOLID_QUEUE_IN_PUMA` — no
   separate worker process; `config.active_job.queue_adapter = :solid_queue`.
 
-**Verified:** `solid_queue_*` tables land in `admin` (not `public`); `PurgeSessionsJob.perform_now`
-against the live shared Postgres purged a 40-day-old session and kept a fresh one; unit + schedule
-tests green (148 suite).
+**Verified (job + schema):** `solid_queue_*` tables land in `admin` (not `public`);
+`PurgeSessionsJob.perform_now` against the live shared Postgres purged a 40-day-old session and kept
+a fresh one; unit + schedule tests green (149 suite).
 
-**Runtime gate (honest):** the live multi-process Solid Queue supervisor cannot start on the
-current stack — `bin/jobs`/in-Puma fork worker processes and hit the **pg 1.6.3 + Ruby 4.0.0 fork
-segfault**, the *same* upstream bug that forces `parallelize(workers: 1)` in `test_helper.rb`. The
-job logic is correct (proven via `perform_now`, which doesn't fork); it will run as soon as the pg
-gem fixes the fork crash (a `bundle update pg` to a fixed release would unblock this AND the
-parallel test workers — track together).
-- **Interim option until then:** a fresh-process runner avoids the fork bug — schedule
-  `bin/rails admin:purge_sessions` via the platform's cron/CronJob (each run is a new process, not a
-  fork of a connected parent; verified working). Solid Queue remains the intended long-term path.
+**Verified (live worker, on Linux):** running `bin/jobs` **inside the Linux app container** on the
+shared `sit` network — twice — the Solid Queue supervisor + scheduler booted, the recurring
+`purge_sessions` task fired, and `DELETE FROM sessions WHERE updated_at <= …` purged the seeded
+stale session. Ran the full duration with **zero segfaults**. So the worker is production-ready.
+
+**macOS-dev-host caveat (not a production gate):** running the supervisor *natively on the macOS
+host* (`bin/jobs` outside Docker) crashes with a **pg 1.6.3 + Ruby 4.0.0 fork segfault** — the same
+bug behind `parallelize(workers: 1)` in `test_helper.rb`. It is **host-specific**: the Linux
+container does NOT hit it (verified above), and `bundle update pg` is a no-op (1.6.3 is already the
+latest release). Implication: run the scheduler in the container / production image, never natively
+on macOS. (The parallel-test workaround likewise only matters for local macOS runs; Linux CI could
+re-enable parallel workers — left as a separate change since `bin/rails test` is also run on the
+Mac.)
 
 ## Item 4: CI (BLOCKED on provider decision)
 
