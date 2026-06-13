@@ -20,6 +20,18 @@ class DashboardTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "2"
   end
 
+  test "recent activity comes through the audit port, newest first, capped at 10" do
+    admin = login_as(:superadmin)
+    12.times do |i|
+      AuditLog.create!(action: "auth.login_succeeded", actor_id: admin.id,
+                       actor_email: admin.email_address, created_at: i.minutes.ago)
+    end
+    get root_path
+    assert_response :success
+    rows = css_select("table:last-of-type tbody tr")
+    assert_equal 10, rows.size
+  end
+
   test "recent activity is visible to superadmin only" do
     login_as(:superadmin)
     get root_path
