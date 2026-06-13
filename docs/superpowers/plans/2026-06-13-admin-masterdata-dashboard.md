@@ -26,7 +26,7 @@
 - Modify: `test/support/core_factories.rb`
 - Test: `test/models/core_master_data_test.rb`
 
-- [ ] **Step 1: failing test** — `test/models/core_master_data_test.rb`
+- [x] **Step 1: failing test** — `test/models/core_master_data_test.rb`
 
 ```ruby
 require "test_helper"
@@ -53,9 +53,9 @@ class CoreMasterDataTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 2: run** `bin/rails test test/models/core_master_data_test.rb` → FAIL (undefined factory / uninitialized constant).
+- [x] **Step 2: run** `bin/rails test test/models/core_master_data_test.rb` → FAIL (undefined factory / uninitialized constant).
 
-- [ ] **Step 3: implement models**
+- [x] **Step 3: implement models**
 
 `app/models/core/emission_factor.rb`:
 ```ruby
@@ -99,7 +99,7 @@ module Core
 end
 ```
 
-- [ ] **Step 4: extend factories** — in `test/support/core_factories.rb` add (reusing the category/unit creation pattern; refactor the category+scope+unit block out of `create_core_emission!` into private helpers `create_core_category!`/`create_core_unit!` and reuse them — keep existing factory signatures working):
+- [x] **Step 4: extend factories** — in `test/support/core_factories.rb` add (reusing the category/unit creation pattern; refactor the category+scope+unit block out of `create_core_emission!` into private helpers `create_core_category!`/`create_core_unit!` and reuse them — keep existing factory signatures working):
 
 ```ruby
   def create_core_emission_factor!(identifier:, name: "ค่าทดสอบ", value: 1.5,
@@ -165,8 +165,8 @@ end
 
 Refactor `create_core_emission!` to call `create_core_category!`/`create_core_unit!` (same behavior; run the whole suite to prove nothing broke).
 
-- [ ] **Step 5: run** target (2 runs PASS) + full suite → 99 runs, 0 failures.
-- [ ] **Step 6: commit** — `feat: Core models and factories for master-data tables`
+- [x] **Step 5: run** target (2 runs PASS) + full suite → 99 runs, 0 failures.
+- [x] **Step 6: commit** — `feat: Core models and factories for master-data tables`
 
 ---
 
@@ -176,7 +176,7 @@ Refactor `create_core_emission!` to call `create_core_category!`/`create_core_un
 - Create: `app/domain/ports/emission_factor_repository.rb`, `app/domain/master_data/create_emission_factor.rb`, `app/domain/master_data/update_emission_factor.rb`, `app/domain/master_data/delete_emission_factor.rb`
 - Test: `test/domain/master_data/emission_factor_test.rb`
 
-- [ ] **Step 1: failing test** — `test/domain/master_data/emission_factor_test.rb`
+- [x] **Step 1: failing test** — `test/domain/master_data/emission_factor_test.rb`
 
 ```ruby
 require_relative "../../domain_helper"
@@ -294,9 +294,9 @@ class EmissionFactorDomainTest < Minitest::Test
 end
 ```
 
-- [ ] **Step 2: run** `ruby -Itest test/domain/master_data/emission_factor_test.rb` → FAIL.
+- [x] **Step 2: run** `ruby -Itest test/domain/master_data/emission_factor_test.rb` → FAIL.
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 `app/domain/ports/emission_factor_repository.rb`:
 ```ruby
@@ -406,8 +406,8 @@ module MasterData
 end
 ```
 
-- [ ] **Step 4: run** → 7 runs PASS standalone; full suite green (count +7 under rails runner).
-- [ ] **Step 5: commit** — `feat: emission factor create/update/delete domain with immutable identifier`
+- [x] **Step 4: run** → 7 runs PASS standalone; full suite green (count +7 under rails runner).
+- [x] **Step 5: commit** — `feat: emission factor create/update/delete domain with immutable identifier`
 
 ---
 
@@ -417,7 +417,7 @@ end
 - Create: `app/adapters/persistence/ar_emission_factor_repository.rb`
 - Test: `test/adapters/ar_emission_factor_repository_test.rb`
 
-- [ ] **Step 1: failing test**
+- [x] **Step 1: failing test**
 
 ```ruby
 require "test_helper"
@@ -465,9 +465,9 @@ class ArEmissionFactorRepositoryTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 2: run** → FAIL.
+- [x] **Step 2: run** → FAIL.
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 ```ruby
 module Persistence
@@ -520,8 +520,8 @@ module Persistence
 end
 ```
 
-- [ ] **Step 4: run** target 3 runs PASS; full suite green.
-- [ ] **Step 5: commit** — `feat: emission factor adapter with create/soft-delete and dup mapping`
+- [x] **Step 4: run** target 3 runs PASS; full suite green.
+- [x] **Step 5: commit** — `feat: emission factor adapter with create/soft-delete and dup mapping`
 
 ---
 
@@ -532,7 +532,7 @@ end
 - Modify: `config/routes.rb`
 - Test: `test/controllers/emission_factors_controller_test.rb`
 
-- [ ] **Step 1: failing test**
+- [x] **Step 1: failing test**
 
 ```ruby
 require "test_helper"
@@ -599,9 +599,9 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: run** → FAIL (routes).
+- [x] **Step 2: run** → FAIL (routes).
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 `config/routes.rb` — add: `resources :emission_factors, only: %i[index new create edit update destroy]`
 
@@ -823,8 +823,8 @@ end
 <% end %>
 ```
 
-- [ ] **Step 4: run** target 3 runs PASS; full suite green.
-- [ ] **Step 5: commit** — `feat: emission factor management UI with cache-warning banner`
+- [x] **Step 4: run** target 3 runs PASS; full suite green.
+- [x] **Step 5: commit** — `feat: emission factor management UI with cache-warning banner`
 
 ---
 
@@ -834,7 +834,7 @@ end
 - Create: `app/domain/ports/pricing_tier_repositories.rb` (NOTE: single file `ports/pricing_tier_repositories.rb` defining only ONE module `Ports::PricingTierRepositories` documenting BOTH contracts — Zeitwerk needs file↔constant match), `app/domain/master_data/tier_bounds.rb`, `app/domain/master_data/update_event_pricing_tier.rb`, `app/domain/master_data/update_offset_pricing_tier.rb`, `app/adapters/persistence/ar_event_pricing_tier_repository.rb`, `app/adapters/persistence/ar_offset_pricing_tier_repository.rb`
 - Test: `test/domain/master_data/pricing_tiers_test.rb`, `test/adapters/ar_pricing_tier_repositories_test.rb`
 
-- [ ] **Step 1: failing domain test** — `test/domain/master_data/pricing_tiers_test.rb`
+- [x] **Step 1: failing domain test** — `test/domain/master_data/pricing_tiers_test.rb`
 
 ```ruby
 require_relative "../../domain_helper"
@@ -930,9 +930,9 @@ class PricingTiersDomainTest < Minitest::Test
 end
 ```
 
-- [ ] **Step 2: run** → FAIL.
+- [x] **Step 2: run** → FAIL.
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 `app/domain/ports/pricing_tier_repositories.rb`:
 ```ruby
@@ -1153,7 +1153,7 @@ module Persistence
 end
 ```
 
-- [ ] **Step 4: failing adapter test** — `test/adapters/ar_pricing_tier_repositories_test.rb`
+- [x] **Step 4: failing adapter test** — `test/adapters/ar_pricing_tier_repositories_test.rb`
 
 ```ruby
 require "test_helper"
@@ -1181,8 +1181,8 @@ class ArPricingTierRepositoriesTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 5: run** domain (6 runs) + adapter (2 runs) PASS; full suite green.
-- [ ] **Step 6: commit** — `feat: pricing tier updates with bounds and overlap validation`
+- [x] **Step 5: run** domain (6 runs) + adapter (2 runs) PASS; full suite green.
+- [x] **Step 6: commit** — `feat: pricing tier updates with bounds and overlap validation`
 
 ---
 
@@ -1193,7 +1193,7 @@ end
 - Modify: `config/routes.rb`
 - Test: `test/controllers/pricing_tiers_controller_test.rb`
 
-- [ ] **Step 1: failing test**
+- [x] **Step 1: failing test**
 
 ```ruby
 require "test_helper"
@@ -1254,9 +1254,9 @@ class PricingTiersControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: run** → FAIL (routes).
+- [x] **Step 2: run** → FAIL (routes).
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 `config/routes.rb` — add:
 ```ruby
@@ -1431,8 +1431,8 @@ end
 <% end %>
 ```
 
-- [ ] **Step 4: run** target 4 runs PASS; full suite green.
-- [ ] **Step 5: commit** — `feat: pricing tier management UI`
+- [x] **Step 4: run** target 4 runs PASS; full suite green.
+- [x] **Step 5: commit** — `feat: pricing tier management UI`
 
 ---
 
@@ -1443,7 +1443,7 @@ end
 - Modify: `config/routes.rb`
 - Test: `test/domain/master_data/rename_category_test.rb`, `test/controllers/categories_controller_test.rb`
 
-- [ ] **Step 1: failing domain test** — `test/domain/master_data/rename_category_test.rb`
+- [x] **Step 1: failing domain test** — `test/domain/master_data/rename_category_test.rb`
 
 ```ruby
 require_relative "../../domain_helper"
@@ -1501,7 +1501,7 @@ class RenameCategoryTest < Minitest::Test
 end
 ```
 
-- [ ] **Step 2: implement domain + port + adapter**
+- [x] **Step 2: implement domain + port + adapter**
 
 `app/domain/ports/category_repository.rb`:
 ```ruby
@@ -1565,7 +1565,7 @@ module Persistence
 end
 ```
 
-- [ ] **Step 3: failing controller test** — `test/controllers/categories_controller_test.rb`
+- [x] **Step 3: failing controller test** — `test/controllers/categories_controller_test.rb`
 
 ```ruby
 require "test_helper"
@@ -1614,7 +1614,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 4: implement web**
+- [x] **Step 4: implement web**
 
 `config/routes.rb` — add: `resources :categories, only: %i[index edit update]`
 
@@ -1718,8 +1718,8 @@ end
 <% end %>
 ```
 
-- [ ] **Step 5: run** all new tests PASS; full suite green.
-- [ ] **Step 6: commit** — `feat: category Thai-label rename with locked Go enum codes`
+- [x] **Step 5: run** all new tests PASS; full suite green.
+- [x] **Step 6: commit** — `feat: category Thai-label rename with locked Go enum codes`
 
 ---
 
@@ -1730,7 +1730,7 @@ end
 - Modify: `app/controllers/home_controller.rb`, `app/views/home/show.html.erb`
 - Test: `test/controllers/dashboard_test.rb`
 
-- [ ] **Step 1: failing test** — `test/controllers/dashboard_test.rb`
+- [x] **Step 1: failing test** — `test/controllers/dashboard_test.rb`
 
 ```ruby
 require "test_helper"
@@ -1769,7 +1769,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: implement**
+- [x] **Step 2: implement**
 
 `app/domain/ports/stats_query.rb`:
 ```ruby
@@ -1898,8 +1898,8 @@ end
 
 NOTE: the existing home_controller_test asserts nav links — keep those passing. The dashboard reads AuditLog directly for the recent list (same data the superadmin-only audit page exposes; controller gates with can?(:view_audit_log)) — this mirrors the established read-path pattern.
 
-- [ ] **Step 3: run** new tests + full suite green (home tests still pass).
-- [ ] **Step 4: commit** — `feat: system dashboard with status breakdown and recent activity`
+- [x] **Step 3: run** new tests + full suite green (home tests still pass).
+- [x] **Step 4: commit** — `feat: system dashboard with status breakdown and recent activity`
 
 ---
 
@@ -1910,7 +1910,7 @@ NOTE: the existing home_controller_test asserts nav links — keep those passing
 - Modify: `config/routes.rb`, `app/views/shared/_sidebar.html.erb`
 - Test: `test/controllers/passwords_controller_test.rb`
 
-- [ ] **Step 1: failing test**
+- [x] **Step 1: failing test**
 
 ```ruby
 require "test_helper"
@@ -1968,7 +1968,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: implement**
+- [x] **Step 2: implement**
 
 `config/routes.rb` — add: `resource :password, only: %i[edit update]`
 
@@ -2029,8 +2029,8 @@ end
     <%= link_to "เปลี่ยนรหัสผ่าน", edit_password_path, class: "mt-1 block text-sm text-primary" %>
 ```
 
-- [ ] **Step 3: run** 4 runs PASS; full suite green.
-- [ ] **Step 4: commit** — `feat: self-service password change revoking other sessions`
+- [x] **Step 3: run** 4 runs PASS; full suite green.
+- [x] **Step 4: commit** — `feat: self-service password change revoking other sessions`
 
 ---
 
@@ -2040,7 +2040,7 @@ end
 - Modify: `app/views/shared/_sidebar.html.erb`, `app/views/audit_logs/index.html.erb`, `test/controllers/home_controller_test.rb`, `test/application_system_test_case.rb`, `README.md`
 - Create: `test/system/admin_flows_test.rb`
 
-- [ ] **Step 1: sidebar** — inside `<nav>` after the ผู้ใช้งาน link add (view_operations-gated alongside the others):
+- [x] **Step 1: sidebar** — inside `<nav>` after the ผู้ใช้งาน link add (view_operations-gated alongside the others):
 
 ```erb
       <%= link_to "ค่า EF", emission_factors_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
@@ -2050,9 +2050,9 @@ end
 
 Update `test/controllers/home_controller_test.rb` "all roles see events and app-users links" test to also assert `/emission_factors`, `/pricing_tiers`, `/categories` links.
 
-- [ ] **Step 2: audit filter** — in `app/views/audit_logs/index.html.erb` add `["ข้อมูลหลัก", "master_data."]` to the ประเภท options.
+- [x] **Step 2: audit filter** — in `app/views/audit_logs/index.html.erb` add `["ข้อมูลหลัก", "master_data."]` to the ประเภท options.
 
-- [ ] **Step 3: system tests** — `test/application_system_test_case.rb` (replace driven_by):
+- [x] **Step 3: system tests** — `test/application_system_test_case.rb` (replace driven_by):
 
 ```ruby
 require "test_helper"
@@ -2125,9 +2125,9 @@ end
 
 Run with `bin/rails test:system` (system tests don't run under plain `bin/rails test`).
 
-- [ ] **Step 4: README** — under Tests add: ``- System tests: `bin/rails test:system` (rack_test driver — no browser needed)``. Update the plans section: Plan 3 done; Plan 4 (deployment + hardening) is next.
+- [x] **Step 4: README** — under Tests add: ``- System tests: `bin/rails test:system` (rack_test driver — no browser needed)``. Update the plans section: Plan 3 done; Plan 4 (deployment + hardening) is next.
 
-- [ ] **Step 5: full verification**
+- [x] **Step 5: full verification**
 
 ```bash
 bin/rails test            # ~125+ runs, 0 failures
@@ -2137,7 +2137,7 @@ bin/rubocop               # 0 offenses (run -a first if needed)
 bundle exec brakeman -q   # exit 0 (add justified ignores if new mass-assignment warnings appear)
 ```
 
-- [ ] **Step 6: commit** — `feat: master-data navigation, audit filter and system test suite`
+- [x] **Step 6: commit** — `feat: master-data navigation, audit filter and system test suite`
 
 ---
 
