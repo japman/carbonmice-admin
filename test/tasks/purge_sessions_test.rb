@@ -16,7 +16,7 @@ class PurgeSessionsTest < ActiveSupport::TestCase
     old.update_columns(updated_at: 40.days.ago)
     keep = Session.create!(admin_user: admin, ip_address: "2.2.2.2", user_agent: "y")
     @rake["admin:purge_sessions"].invoke
+    refute Session.exists?(old.id)
     assert Session.exists?(keep.id)
-    assert_equal 1, Session.count
   end
 end

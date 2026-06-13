@@ -86,6 +86,7 @@ class PricingTiersDomainTest < Minitest::Test
     result = MasterData::UpdateOffsetPricingTier.call(actor: @admin, id: "o1",
                                                       attrs: { max_emission: "150" },
                                                       repo: repo, audit: @audit)
+    assert_equal :locked, repo.events.first, "advisory_lock! must be called before any read (offset)"
     assert result.success?
     assert_equal 150, repo.find("o1").max_emission
     assert_equal "master_data.offset_tier_updated", @audit_entries.last[:action]
