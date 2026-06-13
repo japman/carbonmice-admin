@@ -35,6 +35,10 @@ authoritative (and whether this GitHub repo is the deploy source or a mirror) be
 - `REVOKE UPDATE, DELETE ON admin.audit_logs FROM <app_role>` so the application can append audit
   rows but never rewrite or erase them (append-only audit trail). The purge/maintenance role, if
   any, is separate.
+- **Do NOT let the audit-log REVOKE bleed onto `admin.solid_cache_entries`** (added in Plan 4a):
+  Solid Cache writes via `upsert_all` and sweeps expired rows, so the app role legitimately needs
+  `INSERT, SELECT, UPDATE, DELETE` on `admin.solid_cache_entries`. Grant those explicitly; the
+  append-only constraint applies to `audit_logs` only.
 - Deliver as a reviewed SQL script under `db/roles/` + README runbook; applied manually by a DBA
   with superuser. Do NOT put role DDL in a Rails migration (migrations run as the app role).
 - **Verify:** in staging, confirm the app role cannot `UPDATE`/`DELETE` `audit_logs` (expect
