@@ -9,8 +9,9 @@ class CacheStoreTest < ActiveSupport::TestCase
 
   test "production resolves to the shared solid cache store, not per-process memory" do
     assert defined?(SolidCache), "solid_cache gem must be loaded"
-    # In test env the global cache_store stays :null_store; this asserts the gem +
-    # store class resolve so production's config.cache_store = :solid_cache_store holds.
     assert_kind_of ActiveSupport::Cache::Store, ActiveSupport::Cache.lookup_store(:solid_cache_store)
+    prod_config = Rails.root.join("config/environments/production.rb").read
+    assert_match(/config\.cache_store\s*=\s*:solid_cache_store/, prod_config,
+                 "production must configure :solid_cache_store")
   end
 end
