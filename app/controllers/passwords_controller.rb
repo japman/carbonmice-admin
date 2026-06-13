@@ -7,6 +7,9 @@ class PasswordsController < ApplicationController
     unless admin.authenticate(params[:current_password].to_s)
       return redirect_to edit_password_path, alert: "รหัสผ่านปัจจุบันไม่ถูกต้อง"
     end
+    if params[:password].to_s.strip.empty?
+      return redirect_to edit_password_path, alert: "กรุณากรอกรหัสผ่านใหม่"
+    end
     if params[:password].to_s != params[:password_confirmation].to_s
       return redirect_to edit_password_path, alert: "รหัสผ่านใหม่กับการยืนยันไม่ตรงกัน"
     end

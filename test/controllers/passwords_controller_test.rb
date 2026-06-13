@@ -50,4 +50,15 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_response :success   # current session survives
   end
+
+  test "blank new password is rejected without audit or session revocation" do
+    other = Session.create!(admin_user: @admin, ip_address: "10.0.0.9", user_agent: "other-device")
+    assert_no_difference -> { AuditLog.count } do
+      patch password_path, params: { current_password: "password-for-tests",
+                                     password: "", password_confirmation: "" }
+    end
+    assert_redirected_to edit_password_path
+    assert Session.exists?(other.id)
+    assert AdminUser.authenticate_by(email_address: "me@pea.co.th", password: "password-for-tests")
+  end
 end
