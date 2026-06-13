@@ -1,0 +1,6 @@
+apiVersion: v2
+name: carbonmice-admin
+description: Carbonmice admin panel (Rails 8) — web + Solid Queue worker, sharing the carbonmice Postgres.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

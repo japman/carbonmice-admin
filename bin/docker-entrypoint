@@ -6,10 +6,12 @@ until pg_isready -h "${DB_HOST:-postgres}" -p "${DB_PORT:-5432}" -U "${DB_USER:-
   sleep 2
 done
 
-# When booting the web server, apply admin-schema migrations only.
+# When booting the web server, apply admin-schema migrations only — UNLESS
+# SKIP_DB_MIGRATE=true (set in Kubernetes, where the Helm pre-upgrade Job runs
+# migrations as the dedicated migrator role instead; the runtime app role has no DDL).
 # db:migrate is enhanced (lib/tasks/admin_schema.rake) to CREATE SCHEMA IF NOT EXISTS admin
 # first; it never touches the Go-owned `public` schema.
-if [ "${1}" = "./bin/rails" ] && [ "${2}" = "server" ]; then
+if [ "${SKIP_DB_MIGRATE}" != "true" ] && [ "${1}" = "./bin/rails" ] && [ "${2}" = "server" ]; then
   ./bin/rails db:migrate
 fi
 

@@ -109,11 +109,27 @@ on macOS. (The parallel-test workaround likewise only matters for local macOS ru
 re-enable parallel workers — left as a separate change since `bin/rails test` is also run on the
 Mac.)
 
-## Item 4: CI (BLOCKED on provider decision)
+## Item 4: CI + Kubernetes deploy — DESIGNED (2026-06-13), provider = GitLab
 
-- Once decided: pipeline mirrors the local gate — `bin/rails test`, `bin/rails test:system`,
-  domain standalone, `rubocop`, `brakeman` — plus the Docker build from Item 1. Postgres service
-  must load `core_structure.sql` (Go `public` fixture) before the suite, same as `test_helper.rb`.
+Provider decided: **GitLab CI** (GitHub Actions dropped). Deploy via **Helm → Kubernetes**.
+
+- `.gitlab-ci.yml` — `test` (ruby:4.0.0-slim + postgres:17 service, runs the full local gate:
+  `db:test:prepare` → `test` → `test:system` → `rubocop` → `brakeman`) → `build` (docker build
+  `--target production`, push to the GitLab Container Registry, main/tags only) → `deploy`
+  (`helm upgrade --install`, manual gate on main).
+- `deploy/helm/carbonmice-admin/` — chart with three workloads sharing one image:
+  **web** (Puma, N replicas, `carbonmice_admin_app` role, `SKIP_DB_MIGRATE=true`),
+  **worker** (1× `bin/jobs` Solid Queue supervisor, app role), and a **migrate** Helm
+  pre-upgrade hook Job (`carbonmice_admin_migrator` role, admin schema only). Plus ConfigMap,
+  Secret (or `existingSecret`), Service, Ingress (TLS). `deploy/README.md` is the runbook.
+- `bin/docker-entrypoint` gained a `SKIP_DB_MIGRATE` opt-out so runtime pods (app role, no DDL)
+  never auto-migrate — migrations run only in the hook Job as the migrator role.
+- **Verified (local):** `helm lint` clean; `helm template` renders 7 valid manifests; the
+  least-privilege role split is wired (web/worker → app keys, migrate → migrator keys).
+  Not applied to a cluster (no cluster available) — needs namespace, DB roles, registry, and
+  a GitLab Kube Agent.
+- **Linux-CI bonus:** the test job can re-enable parallel test workers (the segfault is
+  macOS-only) — left commented (`PARALLEL_WORKERS`) until confirmed stable.
 
 ---
 

@@ -1,0 +1,97 @@
+# Default values for carbonmice-admin.
+# Production deploys override image.tag, ingress.host, and the secret values
+# (CI passes them via --set / --set-string from GitLab CI/CD variables).
+
+image:
+  repository: registry.gitlab.com/your-group/carbonmice-admin
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Optional registry pull secret (name of a pre-created docker-registry secret).
+imagePullSecrets: []
+
+# ---------------------------------------------------------------------------
+# Non-secret runtime environment (rendered into a ConfigMap).
+# This app owns ONLY the `admin` schema of the shared carbonmice Postgres.
+# ---------------------------------------------------------------------------
+env:
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "1"
+  RAILS_SERVE_STATIC_FILES: "1"   # puma serves precompiled assets (no Thruster in this image)
+  DB_HOST: postgres.carbonmice.svc.cluster.local
+  DB_PORT: "5432"
+  DB_NAME: carbon-mice
+  ADMIN_SESSION_TTL_DAYS: "30"
+
+# ---------------------------------------------------------------------------
+# Secrets. Two least-privilege roles (see db/roles/): the runtime app role and
+# the migration role. Either let the chart create a Secret from these values
+# (set them via CI --set-string, NEVER commit real values), or point at an
+# existing Secret you manage out-of-band.
+# ---------------------------------------------------------------------------
+secret:
+  # If set, the chart uses this existing Secret and ignores the values below.
+  existingSecret: ""
+  # Keys the chart writes into the created Secret (and reads in the pods):
+  railsMasterKey: ""        # RAILS_MASTER_KEY — decrypts config/credentials.yml.enc
+  appDbUser: carbonmice_admin_app
+  appDbPassword: ""         # runtime role (limited DML; cannot rewrite audit_logs)
+  migratorDbUser: carbonmice_admin_migrator
+  migratorDbPassword: ""    # owns admin schema; used only by the migrate Job
+
+# ---------------------------------------------------------------------------
+# web (Puma) — serves HTTP. Does NOT run jobs.
+# ---------------------------------------------------------------------------
+web:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 100m, memory: 384Mi }
+    limits:   { cpu: "1",  memory: 768Mi }
+  # /up returns 200 once the app boots (assume_ssl handles probes over plain HTTP).
+  probes:
+    path: /up
+    port: 3000
+
+# ---------------------------------------------------------------------------
+# worker — runs `bin/jobs` (Solid Queue supervisor + recurring scheduler).
+# Keep replicaCount at 1: a single scheduler is cleanest (Solid Queue also
+# dedups recurring runs at the DB level, so >1 is safe but unnecessary).
+# Uses the runtime app role (it has DML on the admin-schema solid_queue tables).
+# ---------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests: { cpu: 50m,  memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+# ---------------------------------------------------------------------------
+# migrate — a Helm pre-install/pre-upgrade hook Job. Runs `bin/rails db:migrate`
+# as the MIGRATOR role (so it owns admin objects and the audit append-only
+# REVOKE on the app role is enforced). Admin schema only — never touches public.
+# ---------------------------------------------------------------------------
+migrate:
+  enabled: true
+  backoffLimit: 2
+  resources:
+    requests: { cpu: 100m, memory: 384Mi }
+    limits:   { cpu: "1",  memory: 768Mi }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: admin.carbonmice.example
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: carbonmice-admin-tls
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

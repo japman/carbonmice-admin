@@ -1,0 +1,64 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "carbonmice-admin.fullname" . }}-worker
+  labels:
+    {{- include "carbonmice-admin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  # One scheduler is intended; never run two Recreate-rolling schedulers at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "carbonmice-admin.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{- include "carbonmice-admin.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Solid Queue supervisor + recurring scheduler (purge_sessions). The runtime
+          # app role has DML on the admin-schema solid_queue_* tables.
+          command: ["./bin/jobs"]
+          env:
+            - name: SKIP_DB_MIGRATE
+              value: "true"
+            {{- include "carbonmice-admin.appSecretEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "carbonmice-admin.envFrom" . | nindent 12 }}
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pgrep -f solid_queue || pgrep -f bin/jobs"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

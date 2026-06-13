@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "carbonmice-admin.fullname" . }}-web
+  labels:
+    {{- include "carbonmice-admin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "carbonmice-admin.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "carbonmice-admin.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Serve only; migrations run in the pre-upgrade Job as the migrator role.
+          env:
+            - name: SKIP_DB_MIGRATE
+              value: "true"
+            {{- include "carbonmice-admin.appSecretEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "carbonmice-admin.envFrom" . | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            httpGet: { path: {{ .Values.web.probes.path }}, port: {{ .Values.web.probes.port }} }
+            periodSeconds: 5
+            failureThreshold: 24   # up to ~2 min to boot
+          readinessProbe:
+            httpGet: { path: {{ .Values.web.probes.path }}, port: {{ .Values.web.probes.port }} }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: {{ .Values.web.probes.path }}, port: {{ .Values.web.probes.port }} }
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

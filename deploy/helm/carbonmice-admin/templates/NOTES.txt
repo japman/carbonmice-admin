@@ -1,0 +1,19 @@
+{{ .Chart.Name }} {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Components:
+  - web      : {{ .Values.web.replicaCount }} Puma replica(s), Service {{ include "carbonmice-admin.fullname" . }}:{{ .Values.service.port }}
+  - worker   : {{ if .Values.worker.enabled }}1 Solid Queue supervisor (recurring purge_sessions){{ else }}DISABLED{{ end }}
+  - migrate  : {{ if .Values.migrate.enabled }}ran as a pre-upgrade hook (migrator role, admin schema only){{ else }}DISABLED — run migrations yourself{{ end }}
+
+{{- if .Values.ingress.enabled }}
+
+URL: https://{{ .Values.ingress.host }}
+{{- end }}
+
+Verify:
+  kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "carbonmice-admin.fullname" . }}-web
+  kubectl -n {{ .Release.Namespace }} logs -l app.kubernetes.io/component=migrate --tail=50
+
+Reminder: the runtime pods use the limited `carbonmice_admin_app` DB role; only the
+migrate hook uses `carbonmice_admin_migrator`. Apply db/roles/least_privilege.sql to the
+shared Postgres once per environment before the first deploy.

@@ -1,0 +1,41 @@
+{{- if .Values.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "carbonmice-admin.fullname" . }}-migrate-{{ .Release.Revision }}
+  labels:
+    {{- include "carbonmice-admin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    # Run before web/worker roll out; clean up the previous hook first.
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "carbonmice-admin.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Runs as the MIGRATOR role so it owns admin objects (enforcing the
+          # audit-log append-only REVOKE on the app role). db:migrate is enhanced
+          # to CREATE SCHEMA IF NOT EXISTS admin first; it never touches `public`.
+          command: ["./bin/rails", "db:migrate"]
+          env:
+            {{- include "carbonmice-admin.migratorSecretEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "carbonmice-admin.envFrom" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.migrate.resources | nindent 12 }}
+{{- end }}
