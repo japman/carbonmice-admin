@@ -56,7 +56,7 @@ one place to change gating/ordering later. (Review finding #2.)
 - Modify: `app/controllers/home_controller.rb`
 - Test: `test/controllers/dashboard_test.rb` (extend; existing assertions must stay green)
 
-- [ ] **Step 1: failing/▲ test** — add to `dashboard_test.rb`:
+- [x] **Step 1: failing/▲ test** — add to `dashboard_test.rb`:
 
 ```ruby
   test "recent activity comes through the audit port, newest first, capped at 10" do
@@ -75,12 +75,12 @@ one place to change gating/ordering later. (Review finding #2.)
 (Keep the existing two dashboard tests; they assert the section is visible to superadmin and
 hidden from viewer — both must still pass.)
 
-- [ ] **Step 2: run** `mise exec ruby@4.0.0 -- bin/rails test test/controllers/dashboard_test.rb` → the
+- [x] **Step 2: run** `mise exec ruby@4.0.0 -- bin/rails test test/controllers/dashboard_test.rb` → the
   new test FAILS only if the current direct query doesn't cap at 10 (it does cap at 10, so this
   test mostly locks in behavior; if it passes immediately, that's acceptable — proceed, the
   refactor is the point).
 
-- [ ] **Step 3: implement** — `app/controllers/home_controller.rb#show`, replace the direct read:
+- [x] **Step 3: implement** — `app/controllers/home_controller.rb#show`, replace the direct read:
 
 ```ruby
     # Recent activity reuses the audited read path (gated :view_audit_log inside the use-case).
@@ -93,8 +93,8 @@ hidden from viewer — both must still pass.)
 Remove the `can?(:view_audit_log) ? AuditLog.order(...) : nil` line. The use-case's internal
 `:view_audit_log` gate now decides visibility (viewer → failure → nil), preserving behavior.
 
-- [ ] **Step 4: run** dashboard_test (3 runs) + full `home_controller_test` green.
-- [ ] **Step 5: commit** — `refactor: dashboard recent-activity reads through the audit port`
+- [x] **Step 4: run** dashboard_test (3 runs) + full `home_controller_test` green.
+- [x] **Step 5: commit** — `refactor: dashboard recent-activity reads through the audit port`
 
 ---
 
@@ -109,7 +109,7 @@ wipes everything the user typed. Re-render the form with the submitted values in
   `app/views/emission_factors/edit.html.erb`
 - Test: `test/controllers/emission_factors_controller_test.rb` (extend)
 
-- [ ] **Step 1: failing test** — add:
+- [x] **Step 1: failing test** — add:
 
 ```ruby
   test "create error re-renders new with submitted values and no redirect" do
@@ -136,9 +136,9 @@ wipes everything the user typed. Re-render the form with the submitted values in
   end
 ```
 
-- [ ] **Step 2: run** → FAIL (currently redirects).
+- [x] **Step 2: run** → FAIL (currently redirects).
 
-- [ ] **Step 3: implement** — controller failure branches re-render instead of redirect:
+- [x] **Step 3: implement** — controller failure branches re-render instead of redirect:
 
 ```ruby
   def create
@@ -186,10 +186,10 @@ normal `new` GET (blank form), populated on re-render. `edit.html.erb` already b
 (an AR record on the error path now), so verify its `value:` reads still work and the disabled
 identifier field still shows `@factor.identifier`.
 
-- [ ] **Step 4: run** target tests (new 2 + existing EF controller tests) green. The existing
+- [x] **Step 4: run** target tests (new 2 + existing EF controller tests) green. The existing
   "creates, edits and deletes" and "viewer" tests assert redirects on the SUCCESS/denied paths —
   those are unchanged (only the failure path changed), so they stay green. Confirm.
-- [ ] **Step 5: commit** — `feat: re-render emission-factor form with input preserved on error`
+- [x] **Step 5: commit** — `feat: re-render emission-factor form with input preserved on error`
 
 ---
 
@@ -217,7 +217,7 @@ no-op `advisory_lock!`.
   before the overlap read), `test/adapters/ar_pricing_tier_repositories_test.rb` (assert
   `advisory_lock!` runs without error inside a transaction)
 
-- [ ] **Step 1: failing test** — in the domain test, give `FakeTierRepo` a recorder:
+- [x] **Step 1: failing test** — in the domain test, give `FakeTierRepo` a recorder:
 
 ```ruby
 class FakeTierRepo
@@ -240,9 +240,9 @@ For the adapter test add:
   end
 ```
 
-- [ ] **Step 2: run** → FAIL (`advisory_lock!` undefined).
+- [x] **Step 2: run** → FAIL (`advisory_lock!` undefined).
 
-- [ ] **Step 3: implement**
+- [x] **Step 3: implement**
 
 Port doc (`pricing_tier_repositories.rb`) — add to the contract comment:
 ```
@@ -282,8 +282,8 @@ with `LOCK_KEY = 0x6576656e74` (or any fixed bigint literal; comment it as "even
 ```
 (same for `update_offset`). The lock is held for the whole read-check-write, released at commit.
 
-- [ ] **Step 4: run** domain test + adapter test + `pricing_tiers_controller_test` green.
-- [ ] **Step 5: commit** — `fix: serialize tier-range updates with a transaction advisory lock`
+- [x] **Step 4: run** domain test + adapter test + `pricing_tiers_controller_test` green.
+- [x] **Step 5: commit** — `fix: serialize tier-range updates with a transaction advisory lock`
 
 ---
 
@@ -300,11 +300,11 @@ testable; not wired to a scheduler here (that's deploy-time / Plan 4b).
 - Create: `lib/tasks/sessions.rake`
 - Test: `test/models/session_test.rb`, `test/tasks/purge_sessions_test.rb`
 
-- [ ] **Step 1: confirm columns** — verify `sessions` has `updated_at` (from
+- [x] **Step 1: confirm columns** — verify `sessions` has `updated_at` (from
   `create_admin_auth_tables` `t.timestamps`). If only `created_at` exists, base the scope on
   that and note it. (Implementer: check the migration / `\d admin.sessions` before writing.)
 
-- [ ] **Step 2: failing test** — `test/models/session_test.rb`:
+- [x] **Step 2: failing test** — `test/models/session_test.rb`:
 
 ```ruby
 require "test_helper"
@@ -323,7 +323,7 @@ class SessionTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: implement** — `session.rb`:
+- [x] **Step 3: implement** — `session.rb`:
 ```ruby
 class Session < ApplicationRecord
   belongs_to :admin_user
@@ -345,7 +345,7 @@ namespace :admin do
 end
 ```
 
-- [ ] **Step 4: rake test** — `test/tasks/purge_sessions_test.rb`:
+- [x] **Step 4: rake test** — `test/tasks/purge_sessions_test.rb`:
 ```ruby
 require "test_helper"
 require "rake"
@@ -370,8 +370,8 @@ class PurgeSessionsTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 5: run** both tests green; full suite.
-- [ ] **Step 6: commit** — `feat: admin:purge_sessions task to sweep stale login sessions`
+- [x] **Step 5: run** both tests green; full suite.
+- [x] **Step 6: commit** — `feat: admin:purge_sessions task to sweep stale login sessions`
 
 ---
 
@@ -388,7 +388,7 @@ shared store with no new infrastructure — its table lives in the `admin` schem
 - Create: `config/cache.yml` (or `config/solid_cache.yml` per installer), `db/migrate/<ts>_create_solid_cache_entries.rb`
 - Test: `test/integration/cache_store_test.rb`
 
-- [ ] **Step 1: add gem + install**
+- [x] **Step 1: add gem + install**
 ```bash
 mise exec ruby@4.0.0 -- bundle add solid_cache
 mise exec ruby@4.0.0 -- bin/rails solid_cache:install
@@ -400,12 +400,12 @@ wiring) so the `solid_cache_entries` table is created in the `admin` schema by t
 migration — DO NOT add a second database to `database.yml`, and DO NOT let the migration target
 `public`.
 
-- [ ] **Step 2: migrate** — `mise exec ruby@4.0.0 -- bin/rails db:migrate`. Confirm
+- [x] **Step 2: migrate** — `mise exec ruby@4.0.0 -- bin/rails db:migrate`. Confirm
   `solid_cache_entries` lands in `admin` (search_path) and `db/structure.sql` is regenerated with
   it under `admin`. Verify the `public` (Go) section of structure.sql is UNCHANGED
   (`git diff db/structure.sql` should only add the admin-schema cache table + schema_migrations row).
 
-- [ ] **Step 3: test** — `test/integration/cache_store_test.rb` (exercises the store directly;
+- [x] **Step 3: test** — `test/integration/cache_store_test.rb` (exercises the store directly;
   test env can point at solid_cache for this test or assert the production config resolves):
 ```ruby
 require "test_helper"
@@ -426,9 +426,9 @@ end
 (Implementer: adapt the second assertion to however the installer wired it — the durable check
 is that production `cache_store` resolves to `:solid_cache_store`, not `:memory_store`.)
 
-- [ ] **Step 4: run** the cache test + FULL suite (`mise exec ruby@4.0.0 -- bin/rails test`,
+- [x] **Step 4: run** the cache test + FULL suite (`mise exec ruby@4.0.0 -- bin/rails test`,
   expect 137 + new runs, 0 failures) + `bin/rubocop` + `bundle exec brakeman -q`.
-- [ ] **Step 5: commit** — `feat: shared Solid Cache store so the login rate limiter spans workers`
+- [x] **Step 5: commit** — `feat: shared Solid Cache store so the login rate limiter spans workers`
 
 ---
 

@@ -65,6 +65,14 @@ authoritative (and whether this GitHub repo is the deploy source or a mirror) be
 - EF form re-render on error ✓ (4a Task 2)
 - Recent-activity through the audit port ✓ (4a Task 1)
 
+## Optional follow-ups noted during 4a
+
+- **Offset advisory-lock granularity:** `ArOffsetPricingTierRepository#advisory_lock!` takes one
+  table-wide lock, but the offset overlap check is scoped per `carbon_offset_source_id`. This
+  over-locks (edits to different sources serialize needlessly) — strictly safe, negligible at
+  admin write volume. If contention ever matters, key the lock by source id
+  (`pg_advisory_xact_lock(LOCK_KEY, source_hash)`).
+
 ## Still deferred
 
 - Re-enable parallel test workers (`parallelize(workers: :number_of_processors)`) once the pg gem
