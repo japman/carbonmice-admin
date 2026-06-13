@@ -48,6 +48,29 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
     assert factor.reload.deleted_at.present?
   end
 
+  test "create error re-renders new with submitted values and no redirect" do
+    login(@superadmin)
+    create_core_emission_factor!(identifier: "ef_dup")
+    category_id = Core::CarbonCategory.kept.first.id
+    assert_no_difference -> { Core::EmissionFactor.kept.count } do
+      post emission_factors_path, params: { emission_factor: {
+        identifier: "ef_dup", name: "ชื่อที่พิมพ์ไว้", source: "TGO",
+        value_per_unit: "2.5", unit_title: "kgCO2e/kg", carbon_category_id: category_id } }
+    end
+    assert_response :unprocessable_entity
+    assert_select "input[name='emission_factor[name]'][value='ชื่อที่พิมพ์ไว้']"
+    assert_select "input[name='emission_factor[identifier]'][value='ef_dup']"
+  end
+
+  test "update error re-renders edit with submitted value and no redirect" do
+    login(@superadmin)
+    f = create_core_emission_factor!(identifier: "ef_edit_err", value: 1.5)
+    patch emission_factor_path(f.id), params: { emission_factor: { value_per_unit: "-3" } }
+    assert_response :unprocessable_entity
+    assert_select "input[name='emission_factor[value_per_unit]'][value='-3']"
+    assert_equal 1.5, f.reload.value_per_unit.to_f
+  end
+
   test "viewer reads but cannot write" do
     viewer = AdminUser.create!(email_address: "v@pea.co.th",
                                password: "password-for-tests", name: "วิว", role: :viewer)

@@ -21,7 +21,7 @@
   </div>
   <div>
     <%= f.label :value_per_unit, "ค่า (ต่อหน่วย)", class: "mb-1 block font-medium text-ink" %>
-    <%= f.number_field :value_per_unit, value: @factor.value_per_unit, step: "any", min: 0,
+    <%= f.number_field :value_per_unit, value: @factor.value_per_unit_before_type_cast || @factor.value_per_unit, step: "any", min: 0,
           class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>
   <div>

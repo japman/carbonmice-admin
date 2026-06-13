@@ -22,7 +22,12 @@ class EmissionFactorsController < ApplicationController
     if result.success?
       redirect_to emission_factors_path, notice: "สร้างค่า EF แล้ว"
     else
-      redirect_to new_emission_factor_path, alert: result.error
+      defaults = { identifier: nil, name: nil, description: nil, source: nil,
+                   value_per_unit: nil, unit_title: nil, carbon_category_id: nil }
+      @factor = Data.define(*defaults.keys).new(**defaults.merge(factor_params.to_h.symbolize_keys))
+      @categories = Core::CarbonCategory.kept.order(:name_eng)
+      flash.now[:alert] = result.error
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -39,8 +44,13 @@ class EmissionFactorsController < ApplicationController
     if result.success?
       redirect_to emission_factors_path, notice: "บันทึกการแก้ไขแล้ว"
     else
-      redirect_to edit_emission_factor_path(params[:id]), alert: result.error
+      @factor = repo.find(params[:id])
+      @factor.assign_attributes(update_params.to_h)
+      flash.now[:alert] = result.error
+      render :edit, status: :unprocessable_entity
     end
+  rescue Ports::NotFound
+    redirect_to emission_factors_path, alert: "ไม่พบค่า EF"
   end
 
   def destroy
