@@ -23,13 +23,15 @@ class DashboardTest < ActionDispatch::IntegrationTest
   test "recent activity comes through the audit port, newest first, capped at 10" do
     admin = login_as(:superadmin)
     12.times do |i|
-      AuditLog.create!(action: "auth.login_succeeded", actor_id: admin.id,
+      AuditLog.create!(action: "test.evt_#{format('%02d', i)}", actor_id: admin.id,
                        actor_email: admin.email_address, created_at: i.minutes.ago)
     end
     get root_path
     assert_response :success
     rows = css_select("table:last-of-type tbody tr")
     assert_equal 10, rows.size
+    assert_includes rows.first.to_s, "test.evt_00"
+    refute_includes css_select("table:last-of-type tbody").to_s, "test.evt_11"
   end
 
   test "recent activity is visible to superadmin only" do

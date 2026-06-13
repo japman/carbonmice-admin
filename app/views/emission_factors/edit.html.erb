@@ -13,7 +13,9 @@
   </div>
   <div>
     <%= f.label :description, "คำอธิบาย", class: "mb-1 block font-medium text-ink" %>
-    <%= f.text_area :description, value: @factor.description, rows: 2, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    <%= text_area_tag "emission_factor[description]", @factor&.description, rows: 2,
+          id: "emission_factor_description",
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>
   <div>
     <%= f.label :source, "แหล่งอ้างอิง", class: "mb-1 block font-medium text-ink" %>

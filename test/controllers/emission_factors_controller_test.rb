@@ -55,11 +55,13 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { Core::EmissionFactor.kept.count } do
       post emission_factors_path, params: { emission_factor: {
         identifier: "ef_dup", name: "ชื่อที่พิมพ์ไว้", source: "TGO",
+        description: "คำอธิบายที่พิมพ์",
         value_per_unit: "2.5", unit_title: "kgCO2e/kg", carbon_category_id: category_id } }
     end
     assert_response :unprocessable_entity
     assert_select "input[name='emission_factor[name]'][value='ชื่อที่พิมพ์ไว้']"
     assert_select "input[name='emission_factor[identifier]'][value='ef_dup']"
+    assert_select "textarea[name='emission_factor[description]']", text: "คำอธิบายที่พิมพ์"
   end
 
   test "update error re-renders edit with submitted value and no redirect" do
