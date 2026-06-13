@@ -47,7 +47,10 @@ Rails.application.configure do
   config.cache_store = :solid_cache_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :resque
+  # Single-database app: do NOT set config.solid_queue.connects_to. SolidQueue::Record
+  # then rides the PRIMARY connection (ActiveRecord::Base), so the solid_queue_* tables
+  # live in the `admin` schema (first in schema_search_path), never `public` (owned by Go).
+  config.active_job.queue_adapter = :solid_queue
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
