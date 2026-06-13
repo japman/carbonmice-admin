@@ -46,7 +46,22 @@ staging; Thruster fronting puma once `bin/thrust` is binstubbed.
 - **Verify:** `docker build` succeeds; container boots, `/up` healthcheck 200, login works against
   a staging DB. (Build-time + manual smoke only.)
 
-## Item 2: Dedicated least-privilege DB role
+## Item 2: Dedicated least-privilege DB role — DONE (2026-06-13)
+
+Shipped under `db/roles/` (`least_privilege.sql`, `verify.sql`, `README.md`):
+- **Two roles** (not one): `carbonmice_admin_migrator` owns the `admin` schema + runs
+  migrations; `carbonmice_admin_app` is the limited runtime role. The split is what makes
+  the audit REVOKE enforceable — the app role is not the table owner.
+- App grants: full DML on `admin` except `audit_logs` (SELECT/INSERT only — append-only) and
+  `solid_cache_entries` (full DML kept, no REVOKE bleed); `public` = SELECT everywhere it reads,
+  +UPDATE on the 5 write tables, +INSERT on `carbon_emission_factors` only, never DELETE/DDL.
+- **Verified end-to-end** against the running dev Postgres via `SET ROLE` + a rolled-back
+  battery: all allowed ops succeeded; UPDATE/DELETE on `audit_logs` and DELETE/INSERT/CREATE/ALTER
+  on `public` all rejected with `insufficient_privilege`. Test roles dropped afterward.
+- Remaining for deploy: set passwords per env; run migrations as the migrator role (separate
+  DATABASE_URL from the runtime `DB_*`); point runtime `DB_USER=carbonmice_admin_app`.
+
+### Original spec
 
 - New role with FULL privileges on the `admin` schema (app-owned) and only the needed
   table-level `SELECT`/`INSERT`/`UPDATE` grants on the specific `public` (Go) tables the app
