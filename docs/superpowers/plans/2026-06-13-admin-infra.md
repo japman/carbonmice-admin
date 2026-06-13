@@ -15,7 +15,26 @@ authoritative (and whether this GitHub repo is the deploy source or a mirror) be
 
 ---
 
-## Item 1: Rails production Dockerfile
+## Item 1: Rails Dockerfile + local-dev compose — DONE (2026-06-13)
+
+Shipped on branch `feat/admin-docker`:
+- `Dockerfile` — multi-stage (`base` → `build` → `development` / `build_prod` → `production`).
+  `development` installs all gem groups; `production` is slim, non-root, assets precompiled
+  (`SECRET_KEY_BASE_DUMMY=1 assets:precompile`), `bin/docker-entrypoint` applies admin-only
+  `db:migrate` on boot (never `public`). build stage needs `libyaml-dev`/`libffi-dev` (psych/ffi).
+- `docker-compose.yml` — local dev, **no db service**; `web` (waits for pg → admin `db:migrate`
+  → `rails server -b 0.0.0.0`) + `css` (`tailwindcss:watch`), source bind-mounted. Attaches to the
+  Go side's Postgres over the **external `sit` network** (`${SIT_NETWORK:-carbonmice-main-go-be_sit}`),
+  service host `postgres`, shared DB `carbon-mice`.
+- `.dockerignore`, README "Docker (local dev)" section.
+- **Verified end-to-end** (Go compose up): build OK, stack up, `/` → 302 → `/session/new` login
+  renders, `admin` schema + tables (incl. `solid_cache_entries`) created in the shared DB, Go
+  `public` (60 tables) untouched.
+
+Remaining for deploy: a real registry/build pipeline + the production `/up` healthcheck smoke against
+staging; Thruster fronting puma once `bin/thrust` is binstubbed.
+
+### Original notes
 
 - Multi-stage build (build deps → slim runtime), Ruby 4.0.0, `bundle install --without
   development test`, precompiled assets (`propshaft` + `tailwindcss-rails`), `thruster` fronting

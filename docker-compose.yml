@@ -1,0 +1,63 @@
+# Local development stack for carbonmice-admin.
+#
+# NO database here — this app shares the Go backend's Postgres. Start that first:
+#     cd ../carbonmice-main-go-be && docker compose up -d postgres
+# which creates the external `sit` network and the `postgres` service this stack
+# attaches to. Then from this directory:
+#     docker compose up
+# App: http://localhost:3000
+#
+# The external network defaults to the one the Go compose creates
+# (`<project>_sit` = `carbonmice-main-go-be_sit`). Override with SIT_NETWORK if the
+# Go side runs under a different compose project name (`docker network ls`).
+
+services:
+  web:
+    build:
+      context: .
+      target: development
+    command: >
+      bash -c "until pg_isready -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -q; do
+                 echo 'web: waiting for postgres...'; sleep 2; done &&
+               bin/rails db:migrate &&
+               rm -f tmp/pids/server.pid &&
+               bin/rails server -b 0.0.0.0 -p 3000"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Reach the Go compose's Postgres over the shared `sit` network by service name.
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      RAILS_ENV: development
+    volumes:
+      # Bind-mount source for live reload; gems stay in the image at /usr/local/bundle.
+      - .:/rails
+      # Don't let the host's tmp/log leak container pids/sockets back out.
+      - /rails/tmp/pids
+    networks:
+      - sit
+    tty: true
+
+  # Tailwind CSS watcher — rebuilds app/assets/builds/tailwind.css on change.
+  css:
+    build:
+      context: .
+      target: development
+    command: bin/rails tailwindcss:watch
+    env_file:
+      - .env
+    environment:
+      RAILS_ENV: development
+    volumes:
+      - .:/rails
+    networks:
+      - sit
+    depends_on:
+      - web
+
+networks:
+  sit:
+    external: true
+    name: ${SIT_NETWORK:-carbonmice-main-go-be_sit}

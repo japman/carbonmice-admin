@@ -27,6 +27,27 @@ implementations, controllers/views = web adapter).
 4. Seed the first superadmin: set `SEED_SUPERADMIN_*` in `.env`, then `bin/rails db:seed`.
 5. `bin/dev` → http://localhost:3000
 
+## Docker (local dev)
+
+`docker-compose.yml` runs this app in a container with **no database of its own** —
+it attaches to the Go backend's Postgres over the shared external `sit` network.
+
+1. Start the Go stack first (creates the `sit` network + `postgres` service):
+   `cd ../carbonmice-main-go-be && docker compose up -d postgres`
+2. From this directory: `docker compose up` → http://localhost:3000
+   - `web` waits for Postgres, runs `db:migrate` (admin schema only — never `public`),
+     then serves on `0.0.0.0:3000`; `css` runs `tailwindcss:watch`.
+   - Source is bind-mounted for live reload; gems live in the image.
+3. Stop with `docker compose down` (leaves the Go Postgres and `sit` network running).
+
+The external network defaults to `carbonmice-main-go-be_sit` (the name Docker Compose
+gives the Go side's `sit` network). If the Go repo runs under a different compose
+project name, find it with `docker network ls` and set `SIT_NETWORK=<name>`.
+
+The same `Dockerfile` has a `production` target (slim, non-root, assets precompiled);
+its entrypoint applies admin-only migrations on boot. See
+`docs/superpowers/plans/2026-06-13-admin-infra.md`.
+
 ## Tests
 
 - Everything: `bin/rails test` (uses its own `carbonmice_admin_test` DB)

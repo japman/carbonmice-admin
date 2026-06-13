@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+# Wait for the shared (Go-owned) Postgres to accept connections.
+until pg_isready -h "${DB_HOST:-postgres}" -p "${DB_PORT:-5432}" -U "${DB_USER:-postgres}" -q; do
+  echo "docker-entrypoint: waiting for postgres at ${DB_HOST:-postgres}:${DB_PORT:-5432}..."
+  sleep 2
+done
+
+# When booting the web server, apply admin-schema migrations only.
+# db:migrate is enhanced (lib/tasks/admin_schema.rake) to CREATE SCHEMA IF NOT EXISTS admin
+# first; it never touches the Go-owned `public` schema.
+if [ "${1}" = "./bin/rails" ] && [ "${2}" = "server" ]; then
+  ./bin/rails db:migrate
+fi
+
+exec "$@"

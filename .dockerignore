@@ -1,0 +1,28 @@
+# Build context excludes — keep the image lean and never bake secrets.
+.git
+.gitignore
+.github
+
+# Local env & secrets (compose injects env at runtime instead).
+.env
+.env.*
+!.env.example
+
+# Transient state (recreated in the container).
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/tmp/pids/*
+/storage/*
+!/storage/.keep
+
+# Precompiled assets are rebuilt in the image.
+/public/assets
+
+# Editor / OS noise.
+.DS_Store
+*.swp
+
+# Docs aren't needed at runtime.
+/docs
