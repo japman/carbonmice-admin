@@ -16,6 +16,8 @@ services:
     build:
       context: .
       target: development
+    # web builds the shared dev image; css reuses it (one build, never out of sync).
+    image: carbonmice-admin-dev
     command: >
       bash -c "until pg_isready -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -q; do
                  echo 'web: waiting for postgres...'; sleep 2; done &&
@@ -41,11 +43,11 @@ services:
     tty: true
 
   # Tailwind CSS watcher — rebuilds app/assets/builds/tailwind.css on change.
+  # [always] keeps the watcher alive without a TTY (plain `:watch` exits on stdin
+  # EOF in a container and the service would die immediately).
   css:
-    build:
-      context: .
-      target: development
-    command: bin/rails tailwindcss:watch
+    image: carbonmice-admin-dev   # shared with web; rebuilt via `docker compose build`
+    command: bin/rails tailwindcss:watch[always]
     env_file:
       - .env
     environment:
