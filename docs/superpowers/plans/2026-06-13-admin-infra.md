@@ -78,12 +78,32 @@ Shipped under `db/roles/` (`least_privilege.sql`, `verify.sql`, `README.md`):
 - **Verify:** in staging, confirm the app role cannot `UPDATE`/`DELETE` `audit_logs` (expect
   permission denied) and cannot DDL `public`; the app's normal flows still pass.
 
-## Item 3: Schedule `admin:purge_sessions`
+## Item 3: Schedule `admin:purge_sessions` — DONE (2026-06-13), runtime gated on pg fix
 
-- The task itself ships in Plan 4a. Here: wire it to the deploy environment's scheduler (cron,
-  `whenever`, Kamal accessory, or platform cron) at a daily cadence with
-  `ADMIN_SESSION_TTL_DAYS` set per policy.
-- **Verify:** scheduled run deletes stale rows in staging; logs the count.
+Implemented with **Solid Queue recurring tasks** (Rails-native, DB-backed — consistent with the
+Solid Cache decision, no external cron):
+- `solid_queue` wired to the PRIMARY connection (single-DB); 11 `solid_queue_*` tables created in
+  the `admin` schema via a normal migration (installer's standalone schema deleted, like Solid
+  Cache). `db/structure.sql` regenerated — `public` byte-unchanged (verified against the live DB).
+- `PurgeSessionsJob` wraps `Session.older_than(ADMIN_SESSION_TTL_DAYS, default 30).delete_all`.
+- `config/recurring.yml` (production only): `purge_sessions` daily at 3am + the installer's
+  `clear_solid_queue_finished_jobs` hygiene task. Both schedules asserted Fugit-parseable by a test.
+- Production runs the supervisor **in-Puma** via `plugin :solid_queue if SOLID_QUEUE_IN_PUMA` — no
+  separate worker process; `config.active_job.queue_adapter = :solid_queue`.
+
+**Verified:** `solid_queue_*` tables land in `admin` (not `public`); `PurgeSessionsJob.perform_now`
+against the live shared Postgres purged a 40-day-old session and kept a fresh one; unit + schedule
+tests green (148 suite).
+
+**Runtime gate (honest):** the live multi-process Solid Queue supervisor cannot start on the
+current stack — `bin/jobs`/in-Puma fork worker processes and hit the **pg 1.6.3 + Ruby 4.0.0 fork
+segfault**, the *same* upstream bug that forces `parallelize(workers: 1)` in `test_helper.rb`. The
+job logic is correct (proven via `perform_now`, which doesn't fork); it will run as soon as the pg
+gem fixes the fork crash (a `bundle update pg` to a fixed release would unblock this AND the
+parallel test workers — track together).
+- **Interim option until then:** a fresh-process runner avoids the fork bug — schedule
+  `bin/rails admin:purge_sessions` via the platform's cron/CronJob (each run is a new process, not a
+  fork of a connected parent; verified working). Solid Queue remains the intended long-term path.
 
 ## Item 4: CI (BLOCKED on provider decision)
 
