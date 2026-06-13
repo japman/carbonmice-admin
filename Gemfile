@@ -56,3 +56,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "solid_cache", "~> 1.0"

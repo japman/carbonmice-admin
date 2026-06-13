@@ -1,0 +1,20 @@
+default: &default
+  store_options:
+    # Cap age of oldest cache entry to fulfill retention policies
+    # max_age: <%= 60.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
+
+# Single-database app: Solid Cache uses the PRIMARY connection
+# (ActiveRecord::Base). The solid_cache_entries table lives in the `admin`
+# schema (first in schema_search_path), never in `public` (owned by Go).
+# Do NOT add a `database:`/`connects_to:` key — that would route to a
+# non-existent `cache` database.
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

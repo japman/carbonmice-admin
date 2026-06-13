@@ -148,6 +148,39 @@ ALTER SEQUENCE admin.sessions_id_seq OWNED BY admin.sessions.id;
 
 
 --
+-- Name: solid_cache_entries; Type: TABLE; Schema: admin; Owner: -
+--
+
+CREATE TABLE admin.solid_cache_entries (
+    id bigint NOT NULL,
+    key bytea NOT NULL,
+    value bytea NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    key_hash bigint NOT NULL,
+    byte_size integer NOT NULL
+);
+
+
+--
+-- Name: solid_cache_entries_id_seq; Type: SEQUENCE; Schema: admin; Owner: -
+--
+
+CREATE SEQUENCE admin.solid_cache_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: solid_cache_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: -
+--
+
+ALTER SEQUENCE admin.solid_cache_entries_id_seq OWNED BY admin.solid_cache_entries.id;
+
+
+--
 -- Name: admin_users id; Type: DEFAULT; Schema: admin; Owner: -
 --
 
@@ -166,6 +199,13 @@ ALTER TABLE ONLY admin.audit_logs ALTER COLUMN id SET DEFAULT nextval('admin.aud
 --
 
 ALTER TABLE ONLY admin.sessions ALTER COLUMN id SET DEFAULT nextval('admin.sessions_id_seq'::regclass);
+
+
+--
+-- Name: solid_cache_entries id; Type: DEFAULT; Schema: admin; Owner: -
+--
+
+ALTER TABLE ONLY admin.solid_cache_entries ALTER COLUMN id SET DEFAULT nextval('admin.solid_cache_entries_id_seq'::regclass);
 
 
 --
@@ -209,6 +249,14 @@ ALTER TABLE ONLY admin.sessions
 
 
 --
+-- Name: solid_cache_entries solid_cache_entries_pkey; Type: CONSTRAINT; Schema: admin; Owner: -
+--
+
+ALTER TABLE ONLY admin.solid_cache_entries
+    ADD CONSTRAINT solid_cache_entries_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: index_admin_users_on_email_address; Type: INDEX; Schema: admin; Owner: -
 --
 
@@ -244,6 +292,27 @@ CREATE INDEX index_sessions_on_admin_user_id ON admin.sessions USING btree (admi
 
 
 --
+-- Name: index_solid_cache_entries_on_byte_size; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE INDEX index_solid_cache_entries_on_byte_size ON admin.solid_cache_entries USING btree (byte_size);
+
+
+--
+-- Name: index_solid_cache_entries_on_key_hash; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE UNIQUE INDEX index_solid_cache_entries_on_key_hash ON admin.solid_cache_entries USING btree (key_hash);
+
+
+--
+-- Name: index_solid_cache_entries_on_key_hash_and_byte_size; Type: INDEX; Schema: admin; Owner: -
+--
+
+CREATE INDEX index_solid_cache_entries_on_key_hash_and_byte_size ON admin.solid_cache_entries USING btree (key_hash, byte_size);
+
+
+--
 -- Name: audit_logs fk_rails_2c3f85fdd5; Type: FK CONSTRAINT; Schema: admin; Owner: -
 --
 
@@ -266,6 +335,7 @@ ALTER TABLE ONLY admin.sessions
 SET search_path TO admin,public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260613155738'),
 ('20260612114419'),
 ('20260612113209'),
 ('20260612092717');

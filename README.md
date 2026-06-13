@@ -40,12 +40,16 @@ implementations, controllers/views = web adapter).
 ## Security notes
 
 - Sessions are DB-backed with a 30-day absolute lifetime; deactivating an
-  admin locks them out on their next request.
+  admin locks them out on their next request. Expired/stale sessions are
+  reaped by `bin/rails admin:purge_sessions` (schedule it via cron).
 - Login is rate-limited (10 attempts / 3 min / IP) via Rails' built-in
-  `rate_limit`, which uses `Rails.cache`. **Production must configure a shared
-  cache store** (e.g. Redis or solid_cache) — the default file store is
-  per-host, so multi-replica deploys would multiply the limit. Behind a proxy,
-  `remote_ip` must be configured correctly or all clients share one bucket.
+  `rate_limit`, which uses `Rails.cache`. Production uses **Solid Cache**
+  (DB-backed, `config.cache_store = :solid_cache_store`) so the limit is a
+  single shared bucket across Puma workers and replicas — without it the
+  per-process default would multiply the limit by the worker count. The
+  `solid_cache_entries` table lives in the `admin` schema (single-DB app, no
+  separate `cache` database). Behind a proxy, `remote_ip` must be configured
+  correctly or all clients share one bucket.
 - The audit log (`admin.audit_logs`) is insert-only at the application layer;
   DB-level `REVOKE UPDATE/DELETE` hardening lands with least-privilege grants
   in Phase 3 (deployment). Visibility is controlled solely by `AdminAuth::AccessPolicy`
@@ -60,4 +64,6 @@ implementations, controllers/views = web adapter).
 - Plan 1 (done): `docs/superpowers/plans/2026-06-12-admin-foundation.md`
 - Plan 2 (done): `docs/superpowers/plans/2026-06-12-admin-core-events-users.md`
 - Plan 3 (done): `docs/superpowers/plans/2026-06-13-admin-masterdata-dashboard.md`
-- Plan 4 (next): deployment + hardening (Dockerfile, GitLab CI, least-privilege DB role).
+- Plan 4a (done): app hardening — session purge task + shared Solid Cache store
+  for the login rate limiter.
+- Plan 4 (next): deployment (Dockerfile, GitLab CI, least-privilege DB role).
