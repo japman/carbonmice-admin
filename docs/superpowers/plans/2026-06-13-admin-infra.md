@@ -1,0 +1,68 @@
+# Carbonmice Admin — Plan 4b/4: Infra & Deployment Hardening (DEFERRED)
+
+> **Status: DEFERRED — not locally verifiable.** This work is build-/deploy-time only; the test
+> suite cannot prove it correct. Execute when a deploy target is chosen. CI is intentionally
+> NOT included (see decision below). Plan 4a (code hardening) is the locally-verifiable half and
+> ships first.
+
+**Why separate from 4a:** every item here either touches a production database role, produces a
+container image, or wires a scheduler — none can be green-lit by `bin/rails test`. Bundling them
+with TDD tasks would let unverifiable work hide behind a green suite.
+
+**Decision (2026-06-13):** CI provider deferred. The roadmap text said "GitLab CI mirroring the
+team pipeline," but the repo's `origin` is `github.com:japman/carbonmice-admin`. Resolve which is
+authoritative (and whether this GitHub repo is the deploy source or a mirror) before writing CI.
+
+---
+
+## Item 1: Rails production Dockerfile
+
+- Multi-stage build (build deps → slim runtime), Ruby 4.0.0, `bundle install --without
+  development test`, precompiled assets (`propshaft` + `tailwindcss-rails`), `thruster` fronting
+  `puma` (the `thruster` gem is already in the Gemfile).
+- `.dockerignore` excluding `.git`, `log`, `tmp`, `test`, `docs`, `node_modules`.
+- Honor `schema_search_path: "admin,public"` at runtime; image must NOT run `db:prepare` against
+  `public` (Go owns it) — only `admin` migrations. Entrypoint runs `db:migrate` scoped to admin
+  migrations, never `db:schema:load`.
+- **Verify:** `docker build` succeeds; container boots, `/up` healthcheck 200, login works against
+  a staging DB. (Build-time + manual smoke only.)
+
+## Item 2: Dedicated least-privilege DB role
+
+- New role with FULL privileges on the `admin` schema (app-owned) and only the needed
+  table-level `SELECT`/`INSERT`/`UPDATE` grants on the specific `public` (Go) tables the app
+  reads/writes — never `CREATE`/`DROP`/`ALTER` on `public`.
+- `REVOKE UPDATE, DELETE ON admin.audit_logs FROM <app_role>` so the application can append audit
+  rows but never rewrite or erase them (append-only audit trail). The purge/maintenance role, if
+  any, is separate.
+- Deliver as a reviewed SQL script under `db/roles/` + README runbook; applied manually by a DBA
+  with superuser. Do NOT put role DDL in a Rails migration (migrations run as the app role).
+- **Verify:** in staging, confirm the app role cannot `UPDATE`/`DELETE` `audit_logs` (expect
+  permission denied) and cannot DDL `public`; the app's normal flows still pass.
+
+## Item 3: Schedule `admin:purge_sessions`
+
+- The task itself ships in Plan 4a. Here: wire it to the deploy environment's scheduler (cron,
+  `whenever`, Kamal accessory, or platform cron) at a daily cadence with
+  `ADMIN_SESSION_TTL_DAYS` set per policy.
+- **Verify:** scheduled run deletes stale rows in staging; logs the count.
+
+## Item 4: CI (BLOCKED on provider decision)
+
+- Once decided: pipeline mirrors the local gate — `bin/rails test`, `bin/rails test:system`,
+  domain standalone, `rubocop`, `brakeman` — plus the Docker build from Item 1. Postgres service
+  must load `core_structure.sql` (Go `public` fixture) before the suite, same as `test_helper.rb`.
+
+---
+
+## Notes carried from Plan 4a review backlog (already DONE in 4a)
+
+- Advisory lock on tier updates ✓ (4a Task 3)
+- EF form re-render on error ✓ (4a Task 2)
+- Recent-activity through the audit port ✓ (4a Task 1)
+
+## Still deferred
+
+- Re-enable parallel test workers (`parallelize(workers: :number_of_processors)`) once the pg gem
+  fixes the Ruby 4.0 fork segfault — tracked in `test/test_helper.rb`.
+- Tier create/delete UI if operationally needed.
