@@ -11,6 +11,11 @@ class ArPricingTierRepositoriesTest < ActiveSupport::TestCase
     assert_equal [ 1, 101 ], repo.list.map(&:min_participants)
   end
 
+  test "advisory_lock! acquires a xact lock without error" do
+    repo = Persistence::ArEventPricingTierRepository.new
+    ActiveRecord::Base.transaction { assert_nil repo.advisory_lock! }
+  end
+
   test "offset tier list scopes by source" do
     repo = Persistence::ArOffsetPricingTierRepository.new
     s1 = create_core_offset_source!(name: "S1")

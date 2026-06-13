@@ -1,5 +1,12 @@
 module Persistence
   class ArOffsetPricingTierRepository
+    LOCK_KEY = 0x6f6666736574 # "offset" — serializes offset-tier range edits
+
+    def advisory_lock!
+      Core::CarbonOffsetPricingTier.connection.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})")
+      nil
+    end
+
     def find(id)
       Core::CarbonOffsetPricingTier.kept.find(id)
     rescue ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid

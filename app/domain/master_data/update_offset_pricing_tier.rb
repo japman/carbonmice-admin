@@ -5,6 +5,7 @@ module MasterData
     def self.call(actor:, id:, attrs:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการข้อมูลหลัก") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_master_data)
 
+      repo.advisory_lock!
       attrs = attrs.transform_keys(&:to_sym)
       unknown = attrs.keys - EDITABLE
       return Result.failure("ฟิลด์ไม่ได้รับอนุญาต: #{unknown.join(", ")}") unless unknown.empty?

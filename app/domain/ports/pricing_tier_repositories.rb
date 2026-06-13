@@ -1,5 +1,6 @@
 module Ports
   # Two adapters share this contract shape (event tiers have no source scope):
+  #   advisory_lock! -> nil | acquires a PG advisory transaction lock (released at commit)
   #   find(id) -> record | raises Ports::NotFound
   #   list(source_id: nil) -> all live tiers (event tiers ignore source_id)
   #   update(id, attrs, updated_by:) -> record

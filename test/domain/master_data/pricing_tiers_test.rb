@@ -5,10 +5,18 @@ FakeTier = Struct.new(:id, :min_participants, :max_participants, :price_per_pers
                       :carbon_offset_source_id, :updated_by, keyword_init: true)
 
 class FakeTierRepo
-  attr_reader :rows
-  def initialize(rows) = @rows = rows
-  def find(id) = @rows.fetch(id) { raise Ports::NotFound }
+  attr_reader :rows, :events
+  def initialize(rows)
+    @rows = rows
+    @events = []
+  end
+  def advisory_lock! = @events << :locked
+  def find(id)
+    @events << :find
+    @rows.fetch(id) { raise Ports::NotFound }
+  end
   def list(source_id: nil)
+    @events << :list
     rows = @rows.values
     rows = rows.select { |r| r.carbon_offset_source_id == source_id } if source_id
     rows
@@ -45,6 +53,7 @@ class PricingTiersDomainTest < Minitest::Test
     assert result.success?
     assert_equal 6.5, repo.find("t1").price_per_person
     assert_equal "master_data.event_tier_updated", @audit_entries.last[:action]
+    assert_equal :locked, repo.events.first, "advisory_lock! must be called before any read"
   end
 
   def test_event_tier_overlap_is_rejected

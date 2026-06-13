@@ -15,9 +15,11 @@ class PricingTiersController < ApplicationController
   end
 
   def update_event
-    result = MasterData::UpdateEventPricingTier.call(actor: current_admin, id: params[:id],
-                                                     attrs: tier_params(:min_participants, :max_participants, :price_per_person),
-                                                     repo: event_repo, audit: audit)
+    result = ActiveRecord::Base.transaction do
+      MasterData::UpdateEventPricingTier.call(actor: current_admin, id: params[:id],
+                                              attrs: tier_params(:min_participants, :max_participants, :price_per_person),
+                                              repo: event_repo, audit: audit)
+    end
     if result.success?
       redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว"
     else
@@ -32,9 +34,11 @@ class PricingTiersController < ApplicationController
   end
 
   def update_offset
-    result = MasterData::UpdateOffsetPricingTier.call(actor: current_admin, id: params[:id],
-                                                      attrs: tier_params(:min_emission, :max_emission, :price_per_emission),
-                                                      repo: offset_repo, audit: audit)
+    result = ActiveRecord::Base.transaction do
+      MasterData::UpdateOffsetPricingTier.call(actor: current_admin, id: params[:id],
+                                               attrs: tier_params(:min_emission, :max_emission, :price_per_emission),
+                                               repo: offset_repo, audit: audit)
+    end
     if result.success?
       redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว"
     else

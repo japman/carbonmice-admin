@@ -1,5 +1,12 @@
 module Persistence
   class ArEventPricingTierRepository
+    LOCK_KEY = 0x6576656e74 # "event" — serializes event-tier range edits
+
+    def advisory_lock!
+      Core::EventPricingTier.connection.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})")
+      nil
+    end
+
     def find(id)
       Core::EventPricingTier.kept.find(id)
     rescue ActiveRecord::RecordNotFound, ActiveRecord::StatementInvalid
