@@ -32,7 +32,7 @@
       <tr class="border-b border-gray-100">
         <td class="px-4 py-3 text-ink"><%= c.user&.email %></td>
         <td class="px-4 py-3 font-medium text-ink"><%= c.carbon_credit %></td>
-        <td class="px-4 py-3"><%= c.carbon_offset_source&.name || "—" %></td>
+        <td class="px-4 py-3"><%= c.carbon_offset_source ? (c.carbon_offset_source.name_th.presence || c.carbon_offset_source.name) : "—" %></td>
         <td class="px-4 py-3"><%= c.created_at.in_time_zone.strftime("%d/%m/%Y") %></td>
         <td class="px-4 py-3 text-right whitespace-nowrap">
           <% if can?(:manage_master_data) %>

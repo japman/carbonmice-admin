@@ -92,8 +92,8 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
     user2 = create_core_user!(email: "hacker@example.com")
     credit = create_core_carbon_credit!(user_id: @user.id, amount: 100)
     patch carbon_credit_path(credit.id), params: { carbon_credit: { user_id: user2.id, carbon_credit: "200" } }
-    # user_id is not in update_params so it's silently dropped; amount update fails because
-    # user_id is an unknown key that the domain rejects — verify owner is unchanged.
+    # user_id is stripped by strong params before reaching the domain, so the update
+    # succeeds with only the amount changed — verify the owner (user_id) is unchanged.
     assert_equal @user.id, credit.reload.user_id
   end
 
