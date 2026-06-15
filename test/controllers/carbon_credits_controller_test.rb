@@ -24,6 +24,15 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
     assert_match "500", response.body
   end
 
+  test "index shows the updated_by stamp after a credit is updated" do
+    login(@superadmin)
+    credit = create_core_carbon_credit!(user_id: @user.id, amount: 500)
+    patch carbon_credit_path(credit.id), params: { carbon_credit: { carbon_credit: "750" } }
+    get carbon_credits_path
+    assert_response :success
+    assert_match "carbonmice-admin:sa@pea.co.th", response.body   # updated_by column shows the stamp
+  end
+
   test "index filters by user_id" do
     login(@superadmin)
     user2 = create_core_user!(email: "other@example.com")
