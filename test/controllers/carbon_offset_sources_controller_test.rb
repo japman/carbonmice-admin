@@ -41,6 +41,14 @@ class CarbonOffsetSourcesControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name='carbon_offset_source[name]'][value='Dup Source']"
   end
 
+  test "update re-renders edit 422 when name_th too long" do
+    login(@superadmin)
+    src = create_core_offset_source!(name: "Solar Energy")
+    patch carbon_offset_source_path(src.id), params: { carbon_offset_source: { name_th: "ก" * 256 } }
+    assert_response :unprocessable_entity
+    assert_select "input[name='carbon_offset_source[name_th]'][value=?]", "ก" * 256
+  end
+
   test "edit renders form with locked name field" do
     login(@superadmin)
     source = create_core_offset_source!(name: "Wind Energy", name_th: nil)

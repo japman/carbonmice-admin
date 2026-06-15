@@ -26,6 +26,8 @@ module Persistence
       record
     rescue ActiveRecord::ValueTooLong
       raise Ports::ValidationFailed, "ข้อมูลยาวเกินขนาดที่อนุญาต (สูงสุด 255 ตัวอักษร)"
+    rescue ActiveRecord::RecordInvalid => e
+      raise Ports::ValidationFailed, e.record.errors.full_messages.to_sentence
     end
 
     def in_use?(id)
