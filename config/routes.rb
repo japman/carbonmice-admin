@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   patch "pricing_tiers/offset/:id", to: "pricing_tiers#update_offset", as: :offset_pricing_tier
 
   resources :carbon_offset_sources, only: %i[index new create edit update destroy]
+  resources :carbon_credits, only: %i[index new create edit update destroy]
   resources :categories, only: %i[index edit update]
   resource :password, only: %i[edit update]
 end

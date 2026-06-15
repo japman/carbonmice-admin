@@ -10,6 +10,7 @@
       <%= link_to "ค่า EF", emission_factors_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
       <%= link_to "ระดับราคา", pricing_tiers_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
       <%= link_to "แหล่งออฟเซ็ต", carbon_offset_sources_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
+      <%= link_to "Carbon Credit", carbon_credits_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
       <%= link_to "หมวดหมู่/หน่วย", categories_path, class: "block rounded-lg px-3 py-2 font-medium hover:bg-surface" %>
     <% end %>
     <% if can?(:manage_admin_users) %>

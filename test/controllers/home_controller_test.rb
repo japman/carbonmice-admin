@@ -30,6 +30,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav a[href=?]", "/emission_factors"
     assert_select "nav a[href=?]", "/pricing_tiers"
     assert_select "nav a[href=?]", "/carbon_offset_sources"
+    assert_select "nav a[href=?]", "/carbon_credits"
     assert_select "nav a[href=?]", "/categories"
   end
 

@@ -78,6 +78,17 @@ module CoreFactories
     Core::CarbonOffsetSource.find(id)
   end
 
+  def create_core_carbon_credit!(user_id:, amount:, source_id: nil)
+    id = ActiveRecord::Base.uncached do
+      ActiveRecord::Base.connection.select_value(sanitize_sql(
+        "INSERT INTO public.carbon_credits (user_id, carbon_credit, carbon_offset_source_id, created_by)
+         VALUES (?, ?, ?, 'test') RETURNING id",
+        user_id, amount, source_id
+      ))
+    end
+    Core::CarbonCredit.find(id)
+  end
+
   def create_core_offset_tier!(source_id:, min:, max:, price:, unit_id: nil)
     unit_id ||= create_core_unit!
     id = ActiveRecord::Base.connection.select_value(sanitize_sql(

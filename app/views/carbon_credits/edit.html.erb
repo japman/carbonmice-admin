@@ -1,0 +1,24 @@
+<h1 class="text-2xl font-bold text-ink">แก้ไข Carbon Credit</h1>
+
+<%= form_with url: carbon_credit_path(@credit.id), method: :patch, scope: :carbon_credit,
+      class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <p class="mb-1 block font-medium text-ink">ผู้ใช้</p>
+    <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-body/60">
+      <%= @credit.user&.email %>
+    </p>
+  </div>
+  <div>
+    <%= f.label :carbon_credit, "จำนวน Carbon Credit", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :carbon_credit, value: @credit.carbon_credit, step: 1, min: 1,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :carbon_offset_source_id, "แหล่งออฟเซ็ต (ไม่บังคับ)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.select :carbon_offset_source_id,
+          @sources.map { |s| [s.name_th.presence || s.name, s.id] },
+          { selected: @credit.carbon_offset_source_id, include_blank: "— ไม่ระบุ —" },
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

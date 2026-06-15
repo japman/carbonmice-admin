@@ -1,0 +1,58 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-ink">Carbon Credit</h1>
+  <% if can?(:manage_master_data) %>
+    <%= link_to "เพิ่ม carbon credit", new_carbon_credit_path,
+          class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark" %>
+  <% end %>
+</div>
+
+<%= form_with url: carbon_credits_path, method: :get, class: "mt-4 flex flex-wrap items-end gap-3" do |f| %>
+  <div>
+    <%= f.label :user_id, "ผู้ใช้", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.select :user_id,
+          [["ทั้งหมด", ""]] + @users.map { |u| [u.email, u.id] },
+          { selected: params[:user_id] },
+          class: "rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <%= f.submit "กรอง", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
+
+<table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+  <thead>
+    <tr class="border-b border-gray-200 text-left text-body/60">
+      <th class="px-4 py-3">ผู้ใช้</th>
+      <th class="px-4 py-3">จำนวน</th>
+      <th class="px-4 py-3">แหล่งออฟเซ็ต</th>
+      <th class="px-4 py-3">วันที่</th>
+      <th class="px-4 py-3"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @credits.each do |c| %>
+      <tr class="border-b border-gray-100">
+        <td class="px-4 py-3 text-ink"><%= c.user&.email %></td>
+        <td class="px-4 py-3 font-medium text-ink"><%= c.carbon_credit %></td>
+        <td class="px-4 py-3"><%= c.carbon_offset_source&.name || "—" %></td>
+        <td class="px-4 py-3"><%= c.created_at.in_time_zone.strftime("%d/%m/%Y") %></td>
+        <td class="px-4 py-3 text-right whitespace-nowrap">
+          <% if can?(:manage_master_data) %>
+            <%= link_to "แก้ไข", edit_carbon_credit_path(c.id), class: "text-primary" %>
+            <%= button_to "ลบ", carbon_credit_path(c.id), method: :delete,
+                  form: { data: { turbo_confirm: "ลบ carbon credit #{c.carbon_credit}? (soft delete)" }, class: "inline" },
+                  class: "ml-3 cursor-pointer text-danger" %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="mt-4 flex items-center gap-3">
+  <% if @page > 1 %>
+    <%= link_to "← ก่อนหน้า", carbon_credits_path(user_id: params[:user_id], page: @page - 1), class: "text-primary" %>
+  <% end %>
+  <span class="text-sm text-body/60">หน้า <%= @page %></span>
+  <% if @has_next %>
+    <%= link_to "ถัดไป →", carbon_credits_path(user_id: params[:user_id], page: @page + 1), class: "text-primary" %>
+  <% end %>
+</div>
