@@ -1,0 +1,37 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-ink">แหล่งออฟเซ็ต</h1>
+  <% if can?(:manage_master_data) %>
+    <%= link_to "เพิ่มแหล่ง", new_carbon_offset_source_path,
+          class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark" %>
+  <% end %>
+</div>
+
+<p class="mt-3 max-w-3xl rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+  แหล่งออฟเซ็ตใหม่จะใช้คำนวณ offset ในระบบหลักไม่ได้ จนกว่าทีมระบบหลักจะเพิ่มชื่อนี้ในโค้ด
+</p>
+
+<table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+  <thead>
+    <tr class="border-b border-gray-200 text-left text-body/60">
+      <th class="px-4 py-3">ชื่อ (ไทย)</th>
+      <th class="px-4 py-3">ชื่อ (ระบบหลัก)</th>
+      <th class="px-4 py-3"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @sources.each do |s| %>
+      <tr class="border-b border-gray-100">
+        <td class="px-4 py-3 text-ink"><%= s.name_th.presence || "—" %></td>
+        <td class="px-4 py-3 font-mono text-xs"><%= s.name %> 🔒</td>
+        <td class="px-4 py-3 text-right whitespace-nowrap">
+          <% if can?(:manage_master_data) %>
+            <%= link_to "แก้ชื่อไทย", edit_carbon_offset_source_path(s.id), class: "text-primary" %>
+            <%= button_to "ลบ", carbon_offset_source_path(s.id), method: :delete,
+                  form: { data: { turbo_confirm: "ลบแหล่ง #{s.name}? (soft delete)" }, class: "inline" },
+                  class: "ml-3 cursor-pointer text-danger" %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

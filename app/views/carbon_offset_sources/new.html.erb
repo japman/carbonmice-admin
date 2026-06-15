@@ -1,0 +1,19 @@
+<h1 class="text-2xl font-bold text-ink">เพิ่มแหล่งออฟเซ็ต</h1>
+
+<p class="mt-3 max-w-3xl rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+  แหล่งออฟเซ็ตใหม่จะใช้คำนวณ offset ในระบบหลักไม่ได้ จนกว่าทีมระบบหลักจะเพิ่มชื่อนี้ในโค้ด
+</p>
+
+<%= form_with url: carbon_offset_sources_path, scope: :carbon_offset_source, class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :name, "ชื่อ (ระบบหลัก — แก้ไขภายหลังไม่ได้)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name, value: @source&.name, required: true, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :name_th, "ชื่อภาษาไทย (ไม่จำเป็น)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name_th, value: @source&.name_th, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "สร้าง", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

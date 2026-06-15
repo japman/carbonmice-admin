@@ -1,0 +1,16 @@
+<h1 class="text-2xl font-bold text-ink">แก้ไขแหล่งออฟเซ็ต: <span class="font-mono"><%= @source.name %></span></h1>
+
+<%= form_with url: carbon_offset_source_path(@source.id), method: :patch, scope: :carbon_offset_source,
+      class: "mt-6 max-w-md space-y-5" do |f| %>
+  <div>
+    <%= f.label :name, "ชื่อ (ระบบหลัก — แก้ไขไม่ได้ 🔒)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name, value: @source.name, disabled: true,
+          class: "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 font-mono text-body/60" %>
+  </div>
+  <div>
+    <%= f.label :name_th, "ชื่อภาษาไทย (ไม่จำเป็น)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name_th, value: @source.name_th, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
