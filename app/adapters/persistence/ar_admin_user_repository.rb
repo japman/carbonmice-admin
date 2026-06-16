@@ -21,5 +21,14 @@ module Persistence
     end
 
     def all_ordered = AdminUser.order(created_at: :desc)
+
+    def list(search: nil)
+      scope = all_ordered
+      if search.present?
+        pattern = "%#{ActiveRecord::Base.sanitize_sql_like(search)}%"
+        scope = scope.where("name ILIKE ? OR email_address ILIKE ?", pattern, pattern)
+      end
+      scope
+    end
   end
 end

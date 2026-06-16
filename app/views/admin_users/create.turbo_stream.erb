@@ -1,0 +1,7 @@
+<%= turbo_stream.prepend "adm_rows" do %>
+  <%= render "admin_user", admin_user: @admin_user %>
+<% end %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

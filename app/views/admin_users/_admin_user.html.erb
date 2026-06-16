@@ -1,0 +1,16 @@
+<tr id="<%= dom_id(admin_user) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3 font-medium text-ink"><%= admin_user.name %></td>
+  <td class="px-4 py-3"><%= admin_user.email_address %></td>
+  <td class="px-4 py-3"><%= role_label(admin_user.role) %></td>
+  <td class="px-4 py-3">
+    <% if admin_user.active? %>
+      <span class="rounded-full bg-green-50 px-3 py-1 text-sm text-green-700">ใช้งาน</span>
+    <% else %>
+      <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-body/60">ปิดใช้งาน</span>
+    <% end %>
+  </td>
+  <td class="px-4 py-3 text-right">
+    <%= link_to "แก้ไข", edit_admin_user_path(admin_user),
+          data: { turbo_frame: "modal" }, class: "text-primary" %>
+  </td>
+</tr>

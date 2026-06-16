@@ -1,34 +1,20 @@
 <div class="flex items-center justify-between">
   <h1 class="text-2xl font-bold text-ink">บัญชีผู้ดูแล</h1>
   <%= link_to "เพิ่มผู้ดูแล", new_admin_user_path,
+        data: { turbo_frame: "modal" },
         class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark" %>
 </div>
 
-<table class="mt-6 w-full rounded-xl bg-white shadow-sm">
-  <thead>
-    <tr class="border-b border-gray-200 text-left text-sm text-body/60">
-      <th class="px-4 py-3">ชื่อ</th>
-      <th class="px-4 py-3">อีเมล</th>
-      <th class="px-4 py-3">สิทธิ์</th>
-      <th class="px-4 py-3">สถานะ</th>
-      <th class="px-4 py-3"></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @admin_users.each do |admin| %>
-      <tr class="border-b border-gray-100">
-        <td class="px-4 py-3 font-medium text-ink"><%= admin.name %></td>
-        <td class="px-4 py-3"><%= admin.email_address %></td>
-        <td class="px-4 py-3"><%= role_label(admin.role) %></td>
-        <td class="px-4 py-3">
-          <% if admin.active? %>
-            <span class="rounded-full bg-green-50 px-3 py-1 text-sm text-green-700">ใช้งาน</span>
-          <% else %>
-            <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-body/60">ปิดใช้งาน</span>
-          <% end %>
-        </td>
-        <td class="px-4 py-3 text-right"><%= link_to "แก้ไข", edit_admin_user_path(admin), class: "text-primary" %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<%= form_with url: admin_users_path, method: :get,
+      data: { controller: "filter", turbo_frame: "adm_list" },
+      class: "mt-4 flex items-end gap-3" do |f| %>
+  <div>
+    <%= f.label :search, "ค้นหา", class: "mb-1 block text-sm font-medium text-ink" %>
+    <%= f.text_field :search, value: params[:search], placeholder: "ชื่อหรืออีเมล",
+          data: { action: "input->filter#submit" },
+          class: "w-72 rounded-lg border border-gray-300 px-3 py-2" %>
+  </div>
+  <%= f.submit "ค้นหา", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
+
+<%= render "list" %>

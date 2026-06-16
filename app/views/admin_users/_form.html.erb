@@ -1,0 +1,49 @@
+<% if flash.now[:alert].present? %>
+  <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger"><%= flash.now[:alert] %></div>
+<% end %>
+
+<%= form_with url: (new_record ? admin_users_path : admin_user_path(admin_user.id)),
+              method: (new_record ? :post : :patch),
+              scope: :admin_user,
+              class: "space-y-5" do |f| %>
+  <div>
+    <%= f.label :name, "ชื่อ", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name, value: admin_user.name, required: true,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <% if new_record %>
+    <div>
+      <%= f.label :email_address, "อีเมล", class: "mb-1 block font-medium text-ink" %>
+      <%= f.email_field :email_address, value: admin_user.email_address, required: true,
+            class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    </div>
+    <div>
+      <%= f.label :password, "รหัสผ่าน (อย่างน้อย 12 ตัวอักษร)", class: "mb-1 block font-medium text-ink" %>
+      <%= f.password_field :password, required: true, minlength: 12,
+            class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    </div>
+    <div>
+      <%= f.label :role, "สิทธิ์", class: "mb-1 block font-medium text-ink" %>
+      <%= f.select :role, [["Viewer", "viewer"], ["Admin", "admin"], ["Superadmin", "superadmin"]],
+            {}, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    </div>
+  <% else %>
+    <div>
+      <p class="mb-1 block font-medium text-ink">อีเมล</p>
+      <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-body/60">
+        <%= admin_user.email_address %>
+      </p>
+    </div>
+    <div>
+      <%= f.label :role, "สิทธิ์", class: "mb-1 block font-medium text-ink" %>
+      <%= f.select :role, [["Viewer", "viewer"], ["Admin", "admin"], ["Superadmin", "superadmin"]],
+            { selected: admin_user.role }, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= f.check_box :active, checked: admin_user.active?, class: "h-4 w-4" %>
+      <%= f.label :active, "เปิดใช้งานบัญชี", class: "font-medium text-ink" %>
+    </div>
+  <% end %>
+  <%= f.submit new_record ? "สร้างบัญชี" : "บันทึก",
+        class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
