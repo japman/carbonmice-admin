@@ -20,7 +20,11 @@ class EmissionFactorsController < ApplicationController
     result = MasterData::CreateEmissionFactor.call(actor: current_admin, repo: repo, audit: audit,
                                                    attrs: factor_params.to_h.symbolize_keys)
     if result.success?
-      redirect_to emission_factors_path, notice: "สร้างค่า EF แล้ว"
+      @factor = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "สร้างค่า EF แล้ว" }
+        format.html { redirect_to emission_factors_path, notice: "สร้างค่า EF แล้ว" }
+      end
     else
       defaults = { identifier: nil, name: nil, description: nil, source: nil,
                    value_per_unit: nil, unit_title: nil, carbon_category_id: nil }
@@ -42,7 +46,11 @@ class EmissionFactorsController < ApplicationController
                                                    repo: repo, audit: audit,
                                                    attrs: update_params.to_h.symbolize_keys)
     if result.success?
-      redirect_to emission_factors_path, notice: "บันทึกการแก้ไขแล้ว"
+      @factor = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกการแก้ไขแล้ว" }
+        format.html { redirect_to emission_factors_path, notice: "บันทึกการแก้ไขแล้ว" }
+      end
     else
       @factor = repo.find(params[:id])
       @factor.assign_attributes(update_params.to_h)
@@ -57,7 +65,11 @@ class EmissionFactorsController < ApplicationController
     result = MasterData::DeleteEmissionFactor.call(actor: current_admin, id: params[:id],
                                                    repo: repo, audit: audit)
     if result.success?
-      redirect_to emission_factors_path, notice: "ลบค่า EF แล้ว (soft delete)"
+      @factor = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "ลบค่า EF แล้ว (soft delete)" }
+        format.html { redirect_to emission_factors_path, notice: "ลบค่า EF แล้ว (soft delete)" }
+      end
     else
       redirect_to emission_factors_path, alert: result.error
     end

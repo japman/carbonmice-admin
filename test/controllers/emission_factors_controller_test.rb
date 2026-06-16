@@ -84,4 +84,44 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_equal 1.5, f.reload.value_per_unit.to_f
   end
+
+  test "create via turbo_stream prepends a row, closes the modal, and toasts" do
+    login(@superadmin)
+    category_id = create_core_category!
+    assert_difference -> { Core::EmissionFactor.kept.count } => 1 do
+      post emission_factors_path, as: :turbo_stream, params: { emission_factor: {
+        identifier: "ef_stream", name: "n", source: "s", value_per_unit: "1.0",
+        unit_title: "kg", description: "", carbon_category_id: category_id } }
+    end
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="prepend" target="ef_rows"}, response.body
+    assert_match %r{turbo-stream action="update" target="modal"}, response.body
+    assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
+  end
+
+  test "create via HTML still redirects (no-JS fallback)" do
+    login(@superadmin)
+    category_id = create_core_category!
+    post emission_factors_path, params: { emission_factor: {
+      identifier: "ef_html", name: "n", source: "s", value_per_unit: "1.0",
+      unit_title: "kg", description: "", carbon_category_id: category_id } }
+    assert_redirected_to emission_factors_path
+  end
+
+  test "update via turbo_stream replaces the row and toasts" do
+    login(@superadmin)
+    factor = create_core_emission_factor!(identifier: "ef_upd", value: 1.0)
+    patch emission_factor_path(factor.id), as: :turbo_stream,
+      params: { emission_factor: { name: "ใหม่", value_per_unit: "9.0", unit_title: "kg", source: "s" } }
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="replace" target="#{ActionView::RecordIdentifier.dom_id(factor)}"}, response.body
+  end
+
+  test "destroy via turbo_stream removes the row and toasts" do
+    login(@superadmin)
+    factor = create_core_emission_factor!(identifier: "ef_del", value: 1.0)
+    delete emission_factor_path(factor.id), as: :turbo_stream
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(factor)}"}, response.body
+  end
 end

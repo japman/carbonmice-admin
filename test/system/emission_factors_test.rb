@@ -48,4 +48,32 @@ class EmissionFactorsTest < ApplicationSystemTestCase
     end
     assert_selector "turbo-frame#modal", text: "ef_editme"
   end
+
+  test "creating a factor shows the new row and a toast, and closes the modal" do
+    create_core_category!(name_thai: "หมวดทดสอบ", name_eng: "test_cat")
+    login_admin
+    visit emission_factors_path
+    click_on "เพิ่มค่า EF"
+    fill_in "emission_factor[identifier]", with: "ef_created"
+    fill_in "emission_factor[name]", with: "ชื่อใหม่"
+    fill_in "emission_factor[source]", with: "src"
+    fill_in "emission_factor[value_per_unit]", with: "2.5"
+    fill_in "emission_factor[unit_title]", with: "kgCO2e/kg"
+    click_on "สร้าง"
+    assert_selector "#toast_container", text: "สร้างค่า EF แล้ว"
+    assert_selector "#ef_rows", text: "ef_created"
+    assert_no_selector "turbo-frame#modal div"
+  end
+
+  test "deleting a factor removes its row after the styled confirm" do
+    create_core_emission_factor!(identifier: "ef_kill", value: 1.0)
+    login_admin
+    visit emission_factors_path
+    within "#ef_list" do
+      click_on "ลบ"
+    end
+    click_on "ยืนยัน"
+    assert_no_selector "#ef_rows", text: "ef_kill"
+    assert_selector "#toast_container", text: "ลบค่า EF แล้ว"
+  end
 end
