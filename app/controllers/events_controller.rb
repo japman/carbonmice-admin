@@ -15,9 +15,7 @@ class EventsController < ApplicationController
   def show
     @emissions = Core::CarbonEmission.where(event_id: @event.id)
                                      .includes(:carbon_category, :unit)
-    @status_targets = Events::ChangeStatus::TRANSITIONS
-                        .select { |_to, froms| froms.include?(@event.event_status.to_s) }
-                        .keys
+    @statuses = Core::EventStatus.ordered
   end
 
   def edit

@@ -68,6 +68,19 @@ module CoreFactories
     Core::EventPricingTier.find(id)
   end
 
+  # Wrapped in uncached{} because INSERT…RETURNING with identical SQL is cached by
+  # the Rails query cache; without uncached a second call with the same arguments
+  # returns the first row's UUID rather than a fresh one.
+  def create_core_event_status!(name_eng:, name_thai:, running_order:)
+    id = ActiveRecord::Base.uncached do
+      ActiveRecord::Base.connection.select_value(sanitize_sql(
+        "INSERT INTO public.event_statuses (name_eng, name_thai, running_order, created_by)
+         VALUES (?, ?, ?, 'test') RETURNING id", name_eng, name_thai, running_order
+      ))
+    end
+    Core::EventStatus.find(id)
+  end
+
   def create_core_offset_source!(name: "Test Source", name_th: nil)
     id = ActiveRecord::Base.uncached do
       ActiveRecord::Base.connection.select_value(sanitize_sql(

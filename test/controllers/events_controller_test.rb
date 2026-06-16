@@ -85,6 +85,30 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "in_progress", event.reload.event_status
   end
 
+  test "show renders danger zone with Thai status labels from DB" do
+    login(@superadmin)
+    create_core_event_status!(name_eng: "draft", name_thai: "บันทึกร่าง", running_order: 1)
+    create_core_event_status!(name_eng: "in_progress", name_thai: "กำลังดำเนินการ", running_order: 5)
+    event = create_core_event!(name_thai: "งานทดสอบสถานะ")
+
+    get event_path(event.id)
+    assert_response :success
+    assert_match "บันทึกร่าง", response.body
+    assert_match "กำลังดำเนินการ", response.body
+    assert_match "border-danger", response.body
+  end
+
+  test "server-side transition guard rejects invalid status from full catalog dropdown" do
+    login(@superadmin)
+    create_core_event_status!(name_eng: "draft", name_thai: "บันทึกร่าง", running_order: 1)
+    create_core_event_status!(name_eng: "collecting", name_thai: "กำลังรับสมัคร", running_order: 2)
+    event = create_core_event!(status: "collecting")
+
+    patch status_event_path(event.id), params: { to: "draft" }
+    assert_redirected_to event_path(event.id)
+    assert_equal "collecting", event.reload.event_status
+  end
+
   test "viewer cannot change status or edit" do
     viewer = AdminUser.create!(email_address: "v2@pea.co.th",
                                password: "password-for-tests", name: "วิว", role: :viewer)

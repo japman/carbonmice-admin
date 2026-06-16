@@ -12,13 +12,15 @@ class AdminFlowsTest < ApplicationSystemTestCase
     AdminUser.create!(email_address: "sa@pea.co.th", password: "password-for-tests",
                       name: "ซุป", role: :superadmin)
     event = create_core_event!(name_thai: "งานระบบ", status: "collecting")
+    create_core_event_status!(name_eng: "collecting",  name_thai: "กำลังเก็บข้อมูล",  running_order: 4)
+    create_core_event_status!(name_eng: "in_progress", name_thai: "กำลังดำเนินการ", running_order: 6)
 
     login("sa@pea.co.th", "password-for-tests")
     assert_text "ภาพรวมระบบ"
 
     visit event_path(event.id)
     assert_text "งานระบบ"
-    select "in_progress", from: "to"
+    select "กำลังดำเนินการ", from: "to"
     click_on "เปลี่ยนสถานะ"
     assert_text "เปลี่ยนสถานะแล้ว"
     assert_equal "in_progress", event.reload.event_status
