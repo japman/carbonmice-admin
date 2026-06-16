@@ -40,7 +40,7 @@ class PricingTiersControllerTest < ActionDispatch::IntegrationTest
           params: { tier: { price_per_person: "9.0" } },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
     assert_equal "text/vnd.turbo-stream.html", response.media_type
-    assert_match tier.to_key.map(&:to_s).join, response.body   # dom_id in response
+    assert_match %r{<turbo-stream[^>]+action="replace"[^>]+target="#{ActionView::RecordIdentifier.dom_id(tier)}"}, response.body
     assert_match %r{<turbo-stream[^>]+action="append"[^>]+target="toast_container"}, response.body
     assert_match "บันทึกระดับราคาแล้ว", response.body
   end
@@ -71,6 +71,7 @@ class PricingTiersControllerTest < ActionDispatch::IntegrationTest
           params: { tier: { price_per_emission: "55.0" } },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
     assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{<turbo-stream[^>]+action="replace"[^>]+target="#{ActionView::RecordIdentifier.dom_id(tier)}"}, response.body
     assert_match %r{<turbo-stream[^>]+action="append"[^>]+target="toast_container"}, response.body
     assert_match "บันทึกระดับราคาแล้ว", response.body
   end

@@ -15,13 +15,13 @@
     <%= f.label :from, "ตั้งแต่", class: "mb-1 block text-sm font-medium text-ink" %>
     <%= f.date_field :from, value: params[:from],
           class: "rounded-lg border border-gray-300 px-3 py-2",
-          data: { action: "change->filter#submitNow" } %>
+          data: { action: "change->filter#submit" } %>
   </div>
   <div>
     <%= f.label :to, "ถึง", class: "mb-1 block text-sm font-medium text-ink" %>
     <%= f.date_field :to, value: params[:to],
           class: "rounded-lg border border-gray-300 px-3 py-2",
-          data: { action: "change->filter#submitNow" } %>
+          data: { action: "change->filter#submit" } %>
   </div>
   <%= f.submit "กรอง", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
 <% end %>

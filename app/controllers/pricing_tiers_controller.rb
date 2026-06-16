@@ -28,9 +28,12 @@ class PricingTiersController < ApplicationController
       end
     else
       @tier = event_repo.find(params[:id])
+      @tier.assign_attributes(tier_params(:min_participants, :max_participants, :price_per_person))
       flash.now[:alert] = result.error
       render :edit_event, status: :unprocessable_entity
     end
+  rescue Ports::NotFound
+    redirect_to pricing_tiers_path, alert: "ไม่พบระดับราคา"
   end
 
   def edit_offset
@@ -53,9 +56,12 @@ class PricingTiersController < ApplicationController
       end
     else
       @tier = offset_repo.find(params[:id])
+      @tier.assign_attributes(tier_params(:min_emission, :max_emission, :price_per_emission))
       flash.now[:alert] = result.error
       render :edit_offset, status: :unprocessable_entity
     end
+  rescue Ports::NotFound
+    redirect_to pricing_tiers_path, alert: "ไม่พบระดับราคา"
   end
 
   private
