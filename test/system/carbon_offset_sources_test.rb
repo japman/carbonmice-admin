@@ -18,9 +18,9 @@ class CarbonOffsetSourcesTest < ApplicationSystemTestCase
     visit carbon_offset_sources_path
     click_link "เพิ่มแหล่ง"
     assert_selector "turbo-frame#modal h2", text: "เพิ่มแหล่งออฟเซ็ต"
-    fill_in "carbon_offset_source[name]", with: "New Source"
-    fill_in "carbon_offset_source[name_th]", with: "แหล่งใหม่"
     within "turbo-frame#modal" do
+      fill_in "carbon_offset_source[name]", with: "New Source"
+      fill_in "carbon_offset_source[name_th]", with: "แหล่งใหม่"
       click_on "เพิ่มแหล่ง"
     end
     assert_selector "#toast_container", text: "สร้างแหล่งออฟเซ็ตแล้ว"
@@ -63,10 +63,10 @@ class CarbonOffsetSourcesTest < ApplicationSystemTestCase
     visit carbon_offset_sources_path
     click_link "เพิ่มแหล่ง"
     assert_selector "turbo-frame#modal h2", text: "เพิ่มแหล่งออฟเซ็ต"
-    # Fill with a name that passes HTML5 validation but the server rejects (duplicate)
-    fill_in "carbon_offset_source[name]", with: "Existing Source"
-    fill_in "carbon_offset_source[name_th]", with: ""
     within "turbo-frame#modal" do
+      # A name that passes HTML5 validation but the server rejects (duplicate)
+      fill_in "carbon_offset_source[name]", with: "Existing Source"
+      fill_in "carbon_offset_source[name_th]", with: ""
       click_on "เพิ่มแหล่ง"
     end
     assert_selector "turbo-frame#modal .text-danger"

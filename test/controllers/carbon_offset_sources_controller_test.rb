@@ -157,6 +157,7 @@ class CarbonOffsetSourcesControllerTest < ActionDispatch::IntegrationTest
     delete carbon_offset_source_path(source.id), as: :turbo_stream
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(source)}"}, response.body
+    assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
     assert_match "ลบแหล่งออฟเซ็ตแล้ว", response.body
   end
 end

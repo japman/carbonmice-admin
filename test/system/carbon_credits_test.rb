@@ -90,7 +90,9 @@ class CarbonCreditsTest < ApplicationSystemTestCase
     assert_selector "turbo-frame#modal h2", text: "เพิ่ม carbon credit"
     within "turbo-frame#modal" do
       select "rejectcredit@example.com", from: "carbon_credit[user_id]"
-      # amount 0 is rejected server-side (domain validates > 0)
+      # amount 0 is rejected server-side (domain validates > 0). The field has no
+      # min: constraint (see _form.html.erb), so this reaches the server and
+      # exercises the render :new, 422 turbo-frame re-render path.
       fill_in "carbon_credit[carbon_credit]", with: "0"
       click_on "เพิ่ม"
     end

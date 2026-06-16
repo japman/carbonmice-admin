@@ -19,6 +19,10 @@
   </div>
   <div>
     <%= f.label :carbon_credit, "จำนวน Carbon Credit", class: "mb-1 block font-medium text-ink" %>
+    <%# No min: here on purpose. The domain rejects amount <= 0 server-side; a `min: 1`
+        HTML5 constraint would block 0/negative in the browser BEFORE the request reaches
+        Rails, making the server-side rejection path impossible to exercise in a system
+        test (and unobservable to no-JS clients). Keep validation authoritative server-side. %>
     <%= f.number_field :carbon_credit, value: credit&.carbon_credit, required: true, step: 1,
           class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>

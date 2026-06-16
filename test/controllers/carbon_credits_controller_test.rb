@@ -199,6 +199,7 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
     delete carbon_credit_path(credit.id), as: :turbo_stream
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(credit)}"}, response.body
+    assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
     assert_match "ลบ carbon credit แล้ว", response.body
   end
 end
