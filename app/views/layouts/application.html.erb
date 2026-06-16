@@ -15,9 +15,14 @@
       <div class="flex min-h-screen">
         <%= render "shared/sidebar" %>
         <main class="flex-1 p-8">
-          <%= render "shared/flash" %>
           <%= yield %>
         </main>
+      </div>
+
+      <%= turbo_frame_tag "modal" %>
+      <div id="toast_container" class="fixed top-4 right-4 z-50 flex w-80 flex-col gap-2">
+        <%= render "shared/toast", kind: :notice, message: notice if notice %>
+        <%= render "shared/toast", kind: :alert, message: alert if alert %>
       </div>
     <% else %>
       <%= render "shared/flash" %>
