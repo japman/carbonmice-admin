@@ -1,0 +1,27 @@
+<%= turbo_frame_tag "ef_list", data: { turbo_action: "advance" } do %>
+  <table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">identifier</th>
+        <th class="px-4 py-3">ชื่อ</th>
+        <th class="px-4 py-3">ค่า</th>
+        <th class="px-4 py-3">หน่วย</th>
+        <th class="px-4 py-3">หมวด</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody id="ef_rows">
+      <%= render partial: "emission_factor", collection: @factors %>
+    </tbody>
+  </table>
+
+  <div class="mt-4 flex items-center gap-3">
+    <% if @page > 1 %>
+      <%= link_to "← ก่อนหน้า", emission_factors_path(search: params[:search], category_id: params[:category_id], page: @page - 1), class: "text-primary" %>
+    <% end %>
+    <span class="text-sm text-body/60">หน้า <%= @page %></span>
+    <% if @has_next %>
+      <%= link_to "ถัดไป →", emission_factors_path(search: params[:search], category_id: params[:category_id], page: @page + 1), class: "text-primary" %>
+    <% end %>
+  </div>
+<% end %>

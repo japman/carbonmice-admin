@@ -1,0 +1,16 @@
+<tr id="<%= dom_id(emission_factor) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3 font-mono text-xs"><%= emission_factor.identifier %></td>
+  <td class="px-4 py-3 font-medium text-ink"><%= emission_factor.name %></td>
+  <td class="px-4 py-3"><%= emission_factor.value_per_unit %></td>
+  <td class="px-4 py-3"><%= emission_factor.unit_title %></td>
+  <td class="px-4 py-3"><%= emission_factor.carbon_category&.name_thai %></td>
+  <td class="px-4 py-3 text-right whitespace-nowrap">
+    <% if can?(:manage_master_data) %>
+      <%= link_to "แก้ไข", edit_emission_factor_path(emission_factor.id),
+            data: { turbo_frame: "modal" }, class: "text-primary" %>
+      <%= button_to "ลบ", emission_factor_path(emission_factor.id), method: :delete,
+            form: { data: { turbo_confirm: "ลบค่า #{emission_factor.identifier}? (soft delete)" }, class: "inline" },
+            class: "ml-3 cursor-pointer text-danger" %>
+    <% end %>
+  </td>
+</tr>
