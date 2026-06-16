@@ -29,14 +29,28 @@ class EmissionFactorsTest < ApplicationSystemTestCase
     assert_current_path(/search=alpha/)
   end
 
-  test "add opens a modal and an invalid submit keeps it open with an error" do
+  test "add opens a modal and a server-rejected submit keeps it open with the error" do
+    # Pre-seed an identifier so a same-identifier create is rejected server-side
+    # (DB unique -> Ports::ValidationFailed). All client-side required/pattern
+    # constraints are satisfied, so the request actually reaches the server and
+    # exercises the render :new, 422 turbo-frame re-render path.
+    create_core_emission_factor!(identifier: "ef_dup", value: 1.0)
     login_admin
     visit emission_factors_path
     click_on "เพิ่มค่า EF"
     assert_selector "turbo-frame#modal h2", text: "เพิ่มค่า EF"
-    fill_in "emission_factor[name]", with: "x"
+    fill_in "emission_factor[identifier]", with: "ef_dup"
+    fill_in "emission_factor[name]", with: "ชื่อ"
+    fill_in "emission_factor[source]", with: "src"
+    fill_in "emission_factor[value_per_unit]", with: "1.0"
+    fill_in "emission_factor[unit_title]", with: "kg"
     click_on "สร้าง"
-    assert_selector "turbo-frame#modal", text: "เพิ่มค่า EF" # still open
+    # The server rejected the create (render :new, 422); the error renders inside
+    # the still-open modal frame. (The layout keeps a second, empty turbo-frame#modal
+    # as the persistent load target, so scope the "still open" proof to the error text
+    # rather than the modal title to avoid a ghost match on the empty frame.)
+    assert_selector "turbo-frame#modal .text-danger", text: "identifier นี้มีอยู่แล้ว"
+    assert_selector "turbo-frame#modal input[name='emission_factor[identifier]']" # form still shown
   end
 
   test "edit opens a modal prefilled with the factor" do

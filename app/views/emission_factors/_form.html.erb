@@ -2,6 +2,9 @@
   <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger"><%= flash.now[:alert] %></div>
 <% end %>
 
+<%# required: new_record — fields are HTML5-required only on create. On edit they %>
+<%# are optional client-side (the domain still validates server-side); this lets a %>
+<%# partial edit submit without re-asserting every field. %>
 <%= form_with url: url, method: method, scope: :emission_factor, class: "space-y-5" do |f| %>
   <div>
     <%= f.label :identifier, new_record ? "identifier (a-z, 0-9, _, . — แก้ไขภายหลังไม่ได้)" : "identifier (ระบบหลักใช้ค้นหา — แก้ไขไม่ได้)",

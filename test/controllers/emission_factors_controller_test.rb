@@ -97,6 +97,7 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
     assert_match %r{turbo-stream action="prepend" target="ef_rows"}, response.body
     assert_match %r{turbo-stream action="update" target="modal"}, response.body
     assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
+    assert_match "สร้างค่า EF แล้ว", response.body # toast message is populated
   end
 
   test "create via HTML still redirects (no-JS fallback)" do
@@ -115,6 +116,7 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
       params: { emission_factor: { name: "ใหม่", value_per_unit: "9.0", unit_title: "kg", source: "s" } }
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %r{turbo-stream action="replace" target="#{ActionView::RecordIdentifier.dom_id(factor)}"}, response.body
+    assert_match "บันทึกการแก้ไขแล้ว", response.body # toast message is populated
   end
 
   test "destroy via turbo_stream removes the row and toasts" do
@@ -123,5 +125,6 @@ class EmissionFactorsControllerTest < ActionDispatch::IntegrationTest
     delete emission_factor_path(factor.id), as: :turbo_stream
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(factor)}"}, response.body
+    assert_match "ลบค่า EF แล้ว", response.body # toast message is populated
   end
 end
