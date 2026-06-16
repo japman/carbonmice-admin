@@ -1,0 +1,32 @@
+<%= turbo_frame_tag "al_list", data: { turbo_action: "advance" } do %>
+  <% if @truncated %>
+    <p class="mt-4 text-sm font-medium text-amber-700">
+      แสดงเพียง <%= Persistence::ArAuditLogQuery::DEFAULT_LIMIT %> รายการล่าสุด — ผลลัพธ์อาจถูกตัดทอน กรุณาใช้ตัวกรองช่วงวันที่
+    </p>
+  <% end %>
+
+  <table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">เวลา</th>
+        <th class="px-4 py-3">ผู้กระทำ</th>
+        <th class="px-4 py-3">การกระทำ</th>
+        <th class="px-4 py-3">เป้าหมาย</th>
+        <th class="px-4 py-3">รายละเอียด</th>
+        <th class="px-4 py-3">IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @entries.each do |e| %>
+        <tr class="border-b border-gray-100 align-top">
+          <td class="whitespace-nowrap px-4 py-3"><%= e.created_at.in_time_zone.strftime("%d/%m/%Y %H:%M:%S") %></td>
+          <td class="px-4 py-3"><%= e.actor_email %></td>
+          <td class="px-4 py-3 font-medium text-ink"><%= e.action %></td>
+          <td class="px-4 py-3"><%= [e.target_type, e.target_id].compact.join("#") %></td>
+          <td class="px-4 py-3 font-mono text-xs"><%= e.change_set.presence&.to_json %></td>
+          <td class="px-4 py-3"><%= e.ip_address %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
