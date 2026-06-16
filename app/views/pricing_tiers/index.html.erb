@@ -11,18 +11,7 @@
     </tr>
   </thead>
   <tbody>
-    <% @event_tiers.each do |t| %>
-      <tr class="border-b border-gray-100">
-        <td class="px-4 py-3"><%= t.min_participants %></td>
-        <td class="px-4 py-3"><%= t.max_participants || "ไม่จำกัด" %></td>
-        <td class="px-4 py-3 font-medium text-ink"><%= t.price_per_person %></td>
-        <td class="px-4 py-3 text-right">
-          <% if can?(:manage_master_data) %>
-            <%= link_to "แก้ไข", edit_event_pricing_tier_path(t.id), class: "text-primary" %>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
+    <%= render partial: "event_tier", collection: @event_tiers %>
   </tbody>
 </table>
 
@@ -39,18 +28,7 @@
       </tr>
     </thead>
     <tbody>
-      <% (@offset_tiers_by_source[source.id] || []).each do |t| %>
-        <tr class="border-b border-gray-100">
-          <td class="px-4 py-3"><%= t.min_emission %></td>
-          <td class="px-4 py-3"><%= t.max_emission || "ไม่จำกัด" %></td>
-          <td class="px-4 py-3 font-medium text-ink"><%= t.price_per_emission %></td>
-          <td class="px-4 py-3 text-right">
-            <% if can?(:manage_master_data) %>
-              <%= link_to "แก้ไข", edit_offset_pricing_tier_path(t.id), class: "text-primary" %>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
+      <%= render partial: "offset_tier", collection: (@offset_tiers_by_source[source.id] || []) %>
     </tbody>
   </table>
 <% end %>

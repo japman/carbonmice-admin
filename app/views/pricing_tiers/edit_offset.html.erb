@@ -1,21 +1,3 @@
-<h1 class="text-2xl font-bold text-ink">แก้ไขระดับราคา (ชดเชยคาร์บอน)</h1>
-
-<%= form_with url: offset_pricing_tier_path(@tier.id), method: :patch, scope: :tier,
-      class: "mt-6 max-w-md space-y-5" do |f| %>
-  <div>
-    <%= f.label :min_emission, "ปริมาณต่ำสุด", class: "mb-1 block font-medium text-ink" %>
-    <%= f.number_field :min_emission, value: @tier.min_emission, min: 0,
-          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
-  </div>
-  <div>
-    <%= f.label :max_emission, "ปริมาณสูงสุด (เว้นว่าง = ไม่จำกัด)", class: "mb-1 block font-medium text-ink" %>
-    <%= f.number_field :max_emission, value: @tier.max_emission, min: 1,
-          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
-  </div>
-  <div>
-    <%= f.label :price_per_emission, "ราคา/หน่วย (บาท)", class: "mb-1 block font-medium text-ink" %>
-    <%= f.number_field :price_per_emission, value: @tier.price_per_emission, step: "0.01", min: 0,
-          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
-  </div>
-  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<%= render "shared/modal", title: "แก้ไขระดับราคา (ชดเชยคาร์บอน)" do %>
+  <%= render "offset_tier_form", tier: @tier %>
 <% end %>

@@ -1,0 +1,7 @@
+<%= turbo_stream.replace dom_id(@tier) do %>
+  <%= render "offset_tier", offset_tier: @tier %>
+<% end %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

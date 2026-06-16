@@ -21,9 +21,15 @@ class PricingTiersController < ApplicationController
                                               repo: event_repo, audit: audit)
     end
     if result.success?
-      redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว"
+      @tier = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกระดับราคาแล้ว" }
+        format.html { redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว" }
+      end
     else
-      redirect_to edit_event_pricing_tier_path(params[:id]), alert: result.error
+      @tier = event_repo.find(params[:id])
+      flash.now[:alert] = result.error
+      render :edit_event, status: :unprocessable_entity
     end
   end
 
@@ -40,9 +46,15 @@ class PricingTiersController < ApplicationController
                                                repo: offset_repo, audit: audit)
     end
     if result.success?
-      redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว"
+      @tier = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกระดับราคาแล้ว" }
+        format.html { redirect_to pricing_tiers_path, notice: "บันทึกระดับราคาแล้ว" }
+      end
     else
-      redirect_to edit_offset_pricing_tier_path(params[:id]), alert: result.error
+      @tier = offset_repo.find(params[:id])
+      flash.now[:alert] = result.error
+      render :edit_offset, status: :unprocessable_entity
     end
   end
 

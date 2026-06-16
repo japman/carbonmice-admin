@@ -1,0 +1,12 @@
+<tr id="<%= dom_id(event_tier) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3"><%= event_tier.min_participants %></td>
+  <td class="px-4 py-3"><%= event_tier.max_participants || "ไม่จำกัด" %></td>
+  <td class="px-4 py-3 font-medium text-ink"><%= event_tier.price_per_person %></td>
+  <td class="px-4 py-3 text-right">
+    <% if can?(:manage_master_data) %>
+      <%= link_to "แก้ไข", edit_event_pricing_tier_path(event_tier.id),
+            class: "text-primary",
+            data: { turbo_frame: "modal" } %>
+    <% end %>
+  </td>
+</tr>

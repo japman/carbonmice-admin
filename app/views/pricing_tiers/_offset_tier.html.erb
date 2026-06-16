@@ -1,0 +1,12 @@
+<tr id="<%= dom_id(offset_tier) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3"><%= offset_tier.min_emission %></td>
+  <td class="px-4 py-3"><%= offset_tier.max_emission || "ไม่จำกัด" %></td>
+  <td class="px-4 py-3 font-medium text-ink"><%= offset_tier.price_per_emission %></td>
+  <td class="px-4 py-3 text-right">
+    <% if can?(:manage_master_data) %>
+      <%= link_to "แก้ไข", edit_offset_pricing_tier_path(offset_tier.id),
+            class: "text-primary",
+            data: { turbo_frame: "modal" } %>
+    <% end %>
+  </td>
+</tr>
