@@ -124,6 +124,7 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_match "บันทึกร่าง", response.body
     assert_match "กำลังดำเนินการ", response.body
     assert_match "border-danger", response.body
+    assert_match event.id, response.body   # Event ID shown in the detail box
   end
 
   test "status change rejects a code that is not in the catalog" do
