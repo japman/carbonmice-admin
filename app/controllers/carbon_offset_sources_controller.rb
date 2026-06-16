@@ -58,5 +58,4 @@ class CarbonOffsetSourcesController < ApplicationController
     def create_params = params.require(:carbon_offset_source).permit(:name, :name_th)
     def update_params = params.require(:carbon_offset_source).permit(:name_th)
     def repo = Persistence::ArCarbonOffsetSourceRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

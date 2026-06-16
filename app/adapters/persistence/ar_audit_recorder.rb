@@ -1,6 +1,11 @@
 module Persistence
   class ArAuditRecorder
-    def record(action:, actor: nil, actor_email: nil, target: nil, changes: {}, ip: nil, user_agent: nil)
+    def initialize(ip: nil, user_agent: nil)
+      @ip = ip
+      @user_agent = user_agent
+    end
+
+    def record(action:, actor: nil, actor_email: nil, target: nil, changes: {}, ip: @ip, user_agent: @user_agent)
       AuditLog.create!(
         actor: actor,
         actor_email: actor_email || actor&.email_address,

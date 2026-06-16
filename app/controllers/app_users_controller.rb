@@ -46,5 +46,4 @@ class AppUsersController < ApplicationController
   private
     def update_params = params.require(:app_user).permit(:role, :event_quota)
     def repo = Persistence::ArAppUserRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

@@ -27,5 +27,4 @@ class CategoriesController < ApplicationController
   private
 
     def repo = Persistence::ArCategoryRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

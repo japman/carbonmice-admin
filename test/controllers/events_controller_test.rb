@@ -109,6 +109,13 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "collecting", event.reload.event_status
   end
 
+  test "status change captures request IP in audit log" do
+    login(@superadmin)
+    event = create_core_event!(status: "collecting")
+    patch status_event_path(event.id), params: { to: "in_progress" }
+    assert_equal "127.0.0.1", AuditLog.where(action: "events.status_changed").last.ip_address
+  end
+
   test "viewer cannot change status or edit" do
     viewer = AdminUser.create!(email_address: "v2@pea.co.th",
                                password: "password-for-tests", name: "วิว", role: :viewer)

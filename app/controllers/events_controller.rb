@@ -55,5 +55,4 @@ class EventsController < ApplicationController
 
     def update_params = params.require(:event).permit(:name_thai, :name_eng, :area_name, :province)
     def repo = Persistence::ArEventRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

@@ -70,5 +70,4 @@ class EmissionFactorsController < ApplicationController
     def update_params = params.require(:emission_factor)
                               .permit(:name, :description, :source, :value_per_unit, :unit_title)
     def repo = Persistence::ArEmissionFactorRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

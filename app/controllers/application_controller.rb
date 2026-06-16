@@ -20,4 +20,6 @@ class ApplicationController < ActionController::Base
     def authorize!(action)
       raise NotAuthorized unless can?(action)
     end
+
+    def audit = Persistence::ArAuditRecorder.new(ip: request.remote_ip, user_agent: request.user_agent)
 end

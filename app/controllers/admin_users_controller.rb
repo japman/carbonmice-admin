@@ -38,5 +38,4 @@ class AdminUsersController < ApplicationController
     def create_params = params.require(:admin_user).permit(:email_address, :name, :password, :role)
     def update_params = params.require(:admin_user).permit(:name, :role, :active)
     def repo = Persistence::ArAdminUserRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

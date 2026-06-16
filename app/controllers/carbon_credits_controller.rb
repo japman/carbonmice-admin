@@ -70,5 +70,4 @@ class CarbonCreditsController < ApplicationController
     def create_params = params.require(:carbon_credit).permit(:user_id, :carbon_credit, :carbon_offset_source_id)
     def update_params = params.require(:carbon_credit).permit(:carbon_credit, :carbon_offset_source_id)
     def repo = Persistence::ArCarbonCreditRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end

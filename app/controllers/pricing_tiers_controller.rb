@@ -51,5 +51,4 @@ class PricingTiersController < ApplicationController
     def tier_params(*keys) = params.require(:tier).permit(*keys).to_h.symbolize_keys
     def event_repo = Persistence::ArEventPricingTierRepository.new
     def offset_repo = Persistence::ArOffsetPricingTierRepository.new
-    def audit = Persistence::ArAuditRecorder.new
 end
