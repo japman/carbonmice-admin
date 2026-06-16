@@ -84,12 +84,14 @@ class EventsTest < ApplicationSystemTestCase
     click_on "แก้ไขรายละเอียด"
     assert_selector "turbo-frame#modal h2", text: "แก้ไขอีเว้นท์"
 
-    # Submit with all fields empty — UpdateDetails rejects empty payload
+    # A name longer than 255 chars triggers ValueTooLong -> ValidationFailed ->
+    # UpdateDetails returns failure -> controller renders :edit 422 -> modal stays open.
+    # Use JS to bypass the HTML maxlength attribute.
     within "turbo-frame#modal" do
-      fill_in "event[name_thai]", with: ""
-      fill_in "event[name_eng]", with: ""
-      fill_in "event[area_name]", with: ""
-      fill_in "event[province]", with: ""
+      page.execute_script(
+        "document.querySelector('input[name=\"event[name_thai]\"]').removeAttribute('maxlength')"
+      )
+      fill_in "event[name_thai]", with: "ก" * 300
       click_on "บันทึก"
     end
 
