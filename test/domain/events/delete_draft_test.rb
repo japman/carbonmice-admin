@@ -13,9 +13,11 @@ class FakeDeleteRepo
 
   def find(id) = @rows.fetch(id) { raise Ports::NotFound }
 
-  def hard_delete(id)
+  def hard_delete_cascade(id)
     row = find(id)
-    raise Ports::ValidationFailed, "ลบถาวรไม่ได้: อีเว้นท์นี้มีข้อมูลอื่นอ้างอิงอยู่" if @fk_locked
+    # fk_locked models the adapter's fail-safe: if the cascade can't complete
+    # (e.g. an unexpected leftover reference), it raises ValidationFailed.
+    raise Ports::ValidationFailed, "ลบไม่สำเร็จ: ยังมีข้อมูลที่อ้างอิงอีเว้นท์นี้อยู่" if @fk_locked
     @rows.delete(id)
     @deleted << id
     row
@@ -69,7 +71,7 @@ class DeleteDraftTest < Minitest::Test
     assert_empty @audit.entries
   end
 
-  def test_surfaces_fk_block_as_a_failure
+  def test_surfaces_cascade_failure_safely
     repo = repo_with("draft", fk_locked: true)
     result = Events::DeleteDraft.call(actor: @superadmin, id: "e1", repo: repo, audit: @audit)
     assert result.failure?

@@ -52,10 +52,10 @@
       <span class="rounded-full bg-danger px-2 py-0.5 text-xs font-bold uppercase text-white">Danger zone</span>
     </h2>
     <p class="mt-1 text-sm text-body/60">
-      ลบได้เฉพาะอีเว้นท์สถานะ draft — ลบแล้วกู้คืนไม่ได้ (permanent) และจะลบไม่ได้ถ้ามีข้อมูลอื่นอ้างอิงอยู่
+      ลบได้เฉพาะอีเว้นท์สถานะ draft — ลบแล้วกู้คืนไม่ได้ (permanent) และจะลบข้อมูลที่เกี่ยวข้องทั้งหมดของอีเว้นท์นี้ไปด้วย (cascade)
     </p>
     <%= button_to "ลบถาวร", event_path(@event.id), method: :delete,
-          form: { data: { turbo_confirm: "ลบอีเว้นท์ \"#{@event.name_thai.presence || @event.name_eng}\" ถาวร? การกระทำนี้กู้คืนไม่ได้" } },
+          form: { data: { turbo_confirm: "ลบอีเว้นท์ \"#{@event.name_thai.presence || @event.name_eng}\" และข้อมูลที่เกี่ยวข้องทั้งหมดถาวร? การกระทำนี้กู้คืนไม่ได้" } },
           class: "mt-4 cursor-pointer rounded-lg bg-danger px-4 py-2 font-semibold text-white hover:bg-danger-dark" %>
   </div>
 <% end %>

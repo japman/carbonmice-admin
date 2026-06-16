@@ -57,4 +57,24 @@ class ArEventRepositoryTest < ActiveSupport::TestCase
     end
     assert_match "255", err.message
   end
+
+  test "known_status? checks the event_statuses catalog" do
+    create_core_event_status!(name_eng: "collecting", name_thai: "กำลังรับสมัคร", running_order: 2)
+    assert @repo.known_status?("collecting")
+    assert_not @repo.known_status?("ascended")
+  end
+
+  test "hard_delete_cascade removes a childless event" do
+    event = create_core_event!(status: "draft")
+    @repo.hard_delete_cascade(event.id)
+    assert_not Core::Event.unscoped.exists?(event.id)
+  end
+
+  test "hard_delete_cascade cascades referencing rows (carbon_emissions)" do
+    event = create_core_event!(status: "draft")
+    emission_id = create_core_emission!(event_id: event.id)
+    @repo.hard_delete_cascade(event.id)
+    assert_not Core::Event.unscoped.exists?(event.id)
+    assert_equal 0, Core::CarbonEmission.where(id: emission_id).count
+  end
 end

@@ -1,10 +1,10 @@
 module Events
   class DeleteDraft
-    # Permanent (hard) delete — the deliberate exception to the app's
-    # soft-delete-everything rule. Only a "draft" event may be removed, and only
-    # when nothing references it: public.events is Go-owned and ~24 tables point
-    # at it via FK RESTRICT, so the adapter surfaces any reference as a failure
-    # (we never orphan child rows or cascade-delete Go data).
+    # Permanent CASCADE delete — the deliberate exception to the app's
+    # soft-delete-everything rule. Only a "draft" event may be removed; the
+    # adapter cascade-deletes the event's whole FK subtree (carbon emissions,
+    # documents, schedules, …) in one transaction. public.events is Go-owned, so
+    # this is scoped strictly to this event's descendants and nothing else.
     def self.call(actor:, id:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการอีเว้นท์") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_events)
 
@@ -14,7 +14,7 @@ module Events
 
       name_thai = event.name_thai.to_s
       label = name_thai.empty? ? event.name_eng : name_thai
-      record = repo.hard_delete(id)
+      record = repo.hard_delete_cascade(id)
       audit.record(action: "events.deleted", actor: actor, target: record,
                    changes: { "name" => label, "event_status" => status })
       Result.success(record)

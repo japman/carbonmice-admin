@@ -93,18 +93,24 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_match "ไม่มีข้อมูลให้แก้ไข", response.body
   end
 
-  test "status change follows the transition table and audits" do
+  test "status change accepts any catalog status and audits" do
     login(@superadmin)
+    create_core_event_status!(name_eng: "draft", name_thai: "บันทึกร่าง", running_order: 1)
+    create_core_event_status!(name_eng: "collecting", name_thai: "กำลังรับสมัคร", running_order: 2)
+    create_core_event_status!(name_eng: "in_progress", name_thai: "กำลังดำเนินการ", running_order: 3)
     event = create_core_event!(status: "collecting")
+
     assert_difference -> { AuditLog.where(action: "events.status_changed").count } => 1 do
       patch status_event_path(event.id), params: { to: "in_progress" }
     end
     assert_equal "in_progress", event.reload.event_status
 
-    assert_no_difference -> { AuditLog.where(action: "events.status_changed").count } do
-      patch status_event_path(event.id), params: { to: "draft" }   # not allowed from in_progress
+    # Previously forbidden by the transition table (in_progress -> draft);
+    # now allowed — admin can move to any catalog status.
+    assert_difference -> { AuditLog.where(action: "events.status_changed").count } => 1 do
+      patch status_event_path(event.id), params: { to: "draft" }
     end
-    assert_equal "in_progress", event.reload.event_status
+    assert_equal "draft", event.reload.event_status
   end
 
   test "show renders danger zone with Thai status labels from DB" do
@@ -120,19 +126,21 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_match "border-danger", response.body
   end
 
-  test "server-side transition guard rejects invalid status from full catalog dropdown" do
+  test "status change rejects a code that is not in the catalog" do
     login(@superadmin)
-    create_core_event_status!(name_eng: "draft", name_thai: "บันทึกร่าง", running_order: 1)
     create_core_event_status!(name_eng: "collecting", name_thai: "กำลังรับสมัคร", running_order: 2)
     event = create_core_event!(status: "collecting")
 
-    patch status_event_path(event.id), params: { to: "draft" }
+    assert_no_difference -> { AuditLog.where(action: "events.status_changed").count } do
+      patch status_event_path(event.id), params: { to: "ascended" }   # not a catalog status
+    end
     assert_redirected_to event_path(event.id)
     assert_equal "collecting", event.reload.event_status
   end
 
   test "status change captures request IP in audit log" do
     login(@superadmin)
+    create_core_event_status!(name_eng: "in_progress", name_thai: "กำลังดำเนินการ", running_order: 3)
     event = create_core_event!(status: "collecting")
     patch status_event_path(event.id), params: { to: "in_progress" }
     assert_equal "127.0.0.1", AuditLog.where(action: "events.status_changed").last.ip_address
@@ -173,15 +181,16 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert Core::Event.exists?(event.id)
   end
 
-  test "destroy is blocked when the draft event has referencing data" do
+  test "destroy cascade-deletes a draft event together with its referencing data" do
     login(@superadmin)
     event = create_core_event!(name_thai: "มีอ้างอิง", status: "draft")
-    create_core_emission!(event_id: event.id)
-    assert_no_difference -> { Core::Event.where(id: event.id).count } do
+    emission_id = create_core_emission!(event_id: event.id)
+    assert_difference -> { Core::Event.where(id: event.id).count } => -1 do
       delete event_path(event.id)
     end
-    assert_redirected_to event_path(event.id)
-    assert Core::Event.exists?(event.id)
+    assert_redirected_to events_path
+    assert_not Core::Event.exists?(event.id)
+    assert_equal 0, Core::CarbonEmission.where(id: emission_id).count  # cascaded away
   end
 
   test "viewer cannot destroy a draft event" do
