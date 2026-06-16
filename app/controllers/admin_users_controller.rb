@@ -35,7 +35,7 @@ class AdminUsersController < ApplicationController
     result = AdminAuth::UpdateAdmin.call(actor: current_admin, repo: repo, audit: audit,
                                          id: params[:id], attrs: update_params.to_h.symbolize_keys)
     if result.success?
-      @admin_user = repo.find(params[:id])
+      @admin_user = result.value # already the updated record from UpdateAdmin
       respond_to do |format|
         format.turbo_stream { flash.now[:notice] = "บันทึกการแก้ไขแล้ว" }
         format.html { redirect_to admin_users_path, notice: "บันทึกการแก้ไขแล้ว" }

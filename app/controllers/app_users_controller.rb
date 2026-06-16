@@ -42,6 +42,7 @@ class AppUsersController < ApplicationController
       end
     else
       @app_user = repo.find(params[:id])
+      @app_user.assign_attributes(update_params.to_h) # re-show submitted values (won't persist)
       flash.now[:alert] = errors.join(" / ")
       render :edit, status: :unprocessable_entity
     end
