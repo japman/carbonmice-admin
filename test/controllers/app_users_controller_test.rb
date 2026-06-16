@@ -22,16 +22,30 @@ class AppUsersControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "other@example.com", count: 0
   end
 
-  test "updates role and quota with audit entries" do
+  test "updates role and quota with audit entries — turbo_stream" do
     login(@superadmin)
     user = create_core_user!(email: "t@example.com", role: "user", quota: 1)
     assert_difference -> { AuditLog.where(action: "app_users.role_changed").count } => 1,
                       -> { AuditLog.where(action: "app_users.quota_adjusted").count } => 1 do
-      patch app_user_path(user.id), params: { app_user: { role: "admin", event_quota: "9" } }
+      patch app_user_path(user.id),
+            params: { app_user: { role: "admin", event_quota: "9" } },
+            as: :turbo_stream
     end
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{replace[^>]*target="#{ActionView::RecordIdentifier.dom_id(user)}"}, response.body
+    assert_match %r{append[^>]*target="toast_container"}, response.body
+    assert_match "บันทึกการแก้ไขแล้ว", response.body
     user.reload
     assert_equal "admin", user.role
     assert_equal 9, user.event_quota
+  end
+
+  test "updates role and quota — HTML redirect" do
+    login(@superadmin)
+    user = create_core_user!(email: "thtml@example.com", role: "user", quota: 1)
+    patch app_user_path(user.id), params: { app_user: { role: "admin", event_quota: "5" } }
+    assert_redirected_to app_users_path
+    assert_equal "admin", user.reload.role
   end
 
   test "unchanged values do not produce audit noise" do
@@ -40,6 +54,13 @@ class AppUsersControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { AuditLog.count } do
       patch app_user_path(user.id), params: { app_user: { role: "user", event_quota: "4" } }
     end
+  end
+
+  test "invalid role renders edit with 422" do
+    login(@superadmin)
+    user = create_core_user!(email: "bad@example.com", role: "user", quota: 0)
+    patch app_user_path(user.id), params: { app_user: { role: "invalid_role", event_quota: "0" } }
+    assert_response :unprocessable_entity
   end
 
   test "edit preselects an out-of-list role without demoting it" do

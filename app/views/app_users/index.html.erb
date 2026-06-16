@@ -1,49 +1,15 @@
 <h1 class="text-2xl font-bold text-ink">ผู้ใช้งานระบบหลัก</h1>
 
-<%= form_with url: app_users_path, method: :get, class: "mt-4 flex items-end gap-3" do |f| %>
+<%= form_with url: app_users_path, method: :get,
+      data: { controller: "filter", turbo_frame: "au_list" },
+      class: "mt-4 flex items-end gap-3" do |f| %>
   <div>
     <%= f.label :search, "ค้นหา", class: "mb-1 block text-sm font-medium text-ink" %>
     <%= f.text_field :search, value: params[:search], placeholder: "อีเมลหรือชื่อ",
+          data: { action: "input->filter#submit" },
           class: "w-72 rounded-lg border border-gray-300 px-3 py-2" %>
   </div>
   <%= f.submit "ค้นหา", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
 <% end %>
 
-<table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
-  <thead>
-    <tr class="border-b border-gray-200 text-left text-body/60">
-      <th class="px-4 py-3">ชื่อ</th>
-      <th class="px-4 py-3">อีเมล</th>
-      <th class="px-4 py-3">สิทธิ์</th>
-      <th class="px-4 py-3">โควต้าอีเว้นท์</th>
-      <th class="px-4 py-3">แพ็กเกจ</th>
-      <th class="px-4 py-3"></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @app_users.each do |user| %>
-      <tr class="border-b border-gray-100">
-        <td class="px-4 py-3 font-medium text-ink"><%= user.display_name %></td>
-        <td class="px-4 py-3"><%= user.email %></td>
-        <td class="px-4 py-3"><%= user.role %></td>
-        <td class="px-4 py-3"><%= user.event_quota %></td>
-        <td class="px-4 py-3"><%= user.is_package_user ? "ใช่" : "—" %></td>
-        <td class="px-4 py-3 text-right">
-          <% if can?(:manage_app_users) %>
-            <%= link_to "แก้ไข", edit_app_user_path(user.id), class: "text-primary" %>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<div class="mt-4 flex items-center gap-3">
-  <% if @page > 1 %>
-    <%= link_to "← ก่อนหน้า", app_users_path(search: params[:search], page: @page - 1), class: "text-primary" %>
-  <% end %>
-  <span class="text-sm text-body/60">หน้า <%= @page %></span>
-  <% if @has_next %>
-    <%= link_to "ถัดไป →", app_users_path(search: params[:search], page: @page + 1), class: "text-primary" %>
-  <% end %>
-</div>
+<%= render "list" %>

@@ -1,0 +1,13 @@
+<tr id="<%= dom_id(app_user) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3 font-medium text-ink"><%= app_user.display_name %></td>
+  <td class="px-4 py-3"><%= app_user.email %></td>
+  <td class="px-4 py-3"><%= app_user.role %></td>
+  <td class="px-4 py-3"><%= app_user.event_quota %></td>
+  <td class="px-4 py-3"><%= app_user.is_package_user ? "ใช่" : "—" %></td>
+  <td class="px-4 py-3 text-right">
+    <% if can?(:manage_app_users) %>
+      <%= link_to "แก้ไข", edit_app_user_path(app_user.id),
+            data: { turbo_frame: "modal" }, class: "text-primary" %>
+    <% end %>
+  </td>
+</tr>

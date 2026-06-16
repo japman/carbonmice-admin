@@ -1,0 +1,7 @@
+<%= turbo_stream.replace dom_id(@app_user) do %>
+  <%= render "app_user", app_user: @app_user %>
+<% end %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

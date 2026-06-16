@@ -35,9 +35,15 @@ class AppUsersController < ApplicationController
     end
 
     if errors.empty?
-      redirect_to app_users_path, notice: "บันทึกการแก้ไขแล้ว"
+      @app_user = repo.find(params[:id])
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกการแก้ไขแล้ว" }
+        format.html { redirect_to app_users_path, notice: "บันทึกการแก้ไขแล้ว" }
+      end
     else
-      redirect_to edit_app_user_path(params[:id]), alert: errors.join(" / ")
+      @app_user = repo.find(params[:id])
+      flash.now[:alert] = errors.join(" / ")
+      render :edit, status: :unprocessable_entity
     end
   rescue Ports::NotFound
     redirect_to app_users_path, alert: "ไม่พบผู้ใช้งาน"
