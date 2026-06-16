@@ -26,9 +26,16 @@ class EventsController < ApplicationController
                                         attrs: update_params.to_h.symbolize_keys,
                                         repo: repo, audit: audit)
     if result.success?
-      redirect_to event_path(params[:id]), notice: "บันทึกการแก้ไขแล้ว"
+      @event = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกการแก้ไขแล้ว" }
+        format.html { redirect_to event_path(params[:id]), notice: "บันทึกการแก้ไขแล้ว" }
+      end
     else
-      redirect_to edit_event_path(params[:id]), alert: result.error
+      @event = repo.find(params[:id])
+      @event.assign_attributes(update_params.to_h)
+      flash.now[:alert] = result.error
+      render :edit, status: :unprocessable_entity
     end
   rescue Ports::NotFound
     redirect_to events_path, alert: "ไม่พบอีเว้นท์"

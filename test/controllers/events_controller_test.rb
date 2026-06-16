@@ -71,6 +71,28 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ใหม่", log.change_set.dig("name_thai", "to")
   end
 
+  test "update as turbo_stream replaces event_details and appends toast" do
+    login(@superadmin)
+    event = create_core_event!(name_thai: "ก่อน")
+    patch event_path(event.id),
+          params: { event: { name_thai: "หลัง" } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{<turbo-stream[^>]+action="replace"[^>]+target="event_details"}, response.body
+    assert_match %r{<turbo-stream[^>]+action="append"[^>]+target="toast_container"}, response.body
+    assert_match "บันทึกการแก้ไขแล้ว", response.body
+  end
+
+  test "update error renders edit 422 with flash.now alert" do
+    login(@superadmin)
+    event = create_core_event!(name_thai: "ของเดิม")
+    # Sending only non-whitelisted fields: update_params.permit filters them out,
+    # resulting in empty attrs -> UpdateDetails fails "ไม่มีข้อมูลให้แก้ไข" -> 422
+    patch event_path(event.id), params: { event: { event_status: "hacked" } }
+    assert_response :unprocessable_entity
+    assert_match "ไม่มีข้อมูลให้แก้ไข", response.body
+  end
+
   test "status change follows the transition table and audits" do
     login(@superadmin)
     event = create_core_event!(status: "collecting")

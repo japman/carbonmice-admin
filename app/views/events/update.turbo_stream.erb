@@ -1,0 +1,12 @@
+<%= turbo_stream.replace "event_details" do %>
+  <div id="event_details" class="mt-6">
+    <dl class="max-w-3xl grid grid-cols-2 gap-x-8 gap-y-3 rounded-xl bg-white p-6 shadow-sm text-sm">
+      <dt class="font-medium text-body/60">สถานะปัจจุบัน</dt><dd><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= @event.event_status %></span></dd>
+    </dl>
+    <%= render "details", event: @event %>
+  </div>
+<% end %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

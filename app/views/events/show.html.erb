@@ -1,19 +1,18 @@
 <div class="flex items-center justify-between">
   <h1 class="text-2xl font-bold text-ink"><%= @event.name_thai.presence || @event.name_eng %></h1>
   <% if can?(:manage_events) %>
-    <%= link_to "แก้ไขข้อมูล", edit_event_path(@event.id),
-          class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark" %>
+    <%= link_to "แก้ไขรายละเอียด", edit_event_path(@event.id),
+          class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark",
+          data: { turbo_frame: "modal" } %>
   <% end %>
 </div>
 
-<dl class="mt-6 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-3 rounded-xl bg-white p-6 shadow-sm text-sm">
-  <dt class="font-medium text-body/60">ชื่อ (อังกฤษ)</dt><dd class="text-ink"><%= @event.name_eng %></dd>
-  <dt class="font-medium text-body/60">สถานะปัจจุบัน</dt><dd><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= @event.event_status %></span></dd>
-  <dt class="font-medium text-body/60">สถานที่</dt><dd class="text-ink"><%= @event.area_name %></dd>
-  <dt class="font-medium text-body/60">จังหวัด</dt><dd class="text-ink"><%= @event.province %></dd>
-  <dt class="font-medium text-body/60">สร้างโดย (raw id)</dt><dd class="font-mono text-xs"><%= @event.created_by %></dd>
-  <dt class="font-medium text-body/60">สร้างเมื่อ</dt><dd><%= @event.created_at&.in_time_zone&.strftime("%d/%m/%Y %H:%M") %></dd>
-</dl>
+<div id="event_details" class="mt-6">
+  <dl class="max-w-3xl grid grid-cols-2 gap-x-8 gap-y-3 rounded-xl bg-white p-6 shadow-sm text-sm">
+    <dt class="font-medium text-body/60">สถานะปัจจุบัน</dt><dd><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= @event.event_status %></span></dd>
+  </dl>
+  <%= render "details", event: @event %>
+</div>
 
 <% if can?(:manage_events) %>
   <div class="mt-6 max-w-3xl rounded-xl border-2 border-danger bg-red-50 p-6">

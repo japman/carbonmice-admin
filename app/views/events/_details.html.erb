@@ -1,0 +1,8 @@
+<dl class="grid max-w-3xl grid-cols-2 gap-x-8 gap-y-3 rounded-xl bg-white p-6 shadow-sm text-sm">
+  <dt class="font-medium text-body/60">ชื่อ (ไทย)</dt><dd class="text-ink"><%= event.name_thai %></dd>
+  <dt class="font-medium text-body/60">ชื่อ (อังกฤษ)</dt><dd class="text-ink"><%= event.name_eng %></dd>
+  <dt class="font-medium text-body/60">สถานที่</dt><dd class="text-ink"><%= event.area_name %></dd>
+  <dt class="font-medium text-body/60">จังหวัด</dt><dd class="text-ink"><%= event.province %></dd>
+  <dt class="font-medium text-body/60">สร้างโดย (raw id)</dt><dd class="font-mono text-xs"><%= event.created_by %></dd>
+  <dt class="font-medium text-body/60">สร้างเมื่อ</dt><dd><%= event.created_at&.in_time_zone&.strftime("%d/%m/%Y %H:%M") %></dd>
+</dl>
