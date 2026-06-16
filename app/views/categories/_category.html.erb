@@ -1,0 +1,10 @@
+<tr id="<%= dom_id(category) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3 font-medium text-ink"><%= category.name_thai %></td>
+  <td class="px-4 py-3 font-mono text-xs"><%= category.name_eng %> 🔒</td>
+  <td class="px-4 py-3 text-right">
+    <% if can?(:manage_master_data) %>
+      <%= link_to "แก้ชื่อไทย", edit_category_path(category.id),
+            data: { turbo_frame: "modal" }, class: "text-primary" %>
+    <% end %>
+  </td>
+</tr>

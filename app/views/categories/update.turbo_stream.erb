@@ -1,0 +1,7 @@
+<%= turbo_stream.replace dom_id(@category) do %>
+  <%= render "category", category: @category %>
+<% end %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

@@ -14,17 +14,7 @@
     </tr>
   </thead>
   <tbody>
-    <% @categories.each do |c| %>
-      <tr class="border-b border-gray-100">
-        <td class="px-4 py-3 font-medium text-ink"><%= c.name_thai %></td>
-        <td class="px-4 py-3 font-mono text-xs"><%= c.name_eng %> 🔒</td>
-        <td class="px-4 py-3 text-right">
-          <% if can?(:manage_master_data) %>
-            <%= link_to "แก้ชื่อไทย", edit_category_path(c.id), class: "text-primary" %>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
+    <%= render partial: "category", collection: @categories %>
   </tbody>
 </table>
 

@@ -1,0 +1,12 @@
+<% if flash.now[:alert].present? %>
+  <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger"><%= flash.now[:alert] %></div>
+<% end %>
+
+<%= form_with url: category_path(category.id), method: :patch, scope: :category, class: "space-y-5" do |f| %>
+  <div>
+    <%= f.label :name_thai, "ชื่อภาษาไทย", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name_thai, value: category.name_thai, required: true, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
