@@ -1,0 +1,34 @@
+<% if flash.now[:alert].present? %>
+  <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger"><%= flash.now[:alert] %></div>
+<% end %>
+
+<%= form_with url: url, method: method, scope: :carbon_credit, class: "space-y-5" do |f| %>
+  <div>
+    <% if new_record %>
+      <%= f.label :user_id, "ผู้ใช้", class: "mb-1 block font-medium text-ink" %>
+      <%= f.select :user_id,
+            [["เลือกผู้ใช้", ""]] + @users.map { |u| [u.email, u.id] },
+            { selected: credit&.user_id },
+            required: true, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+    <% else %>
+      <p class="mb-1 block font-medium text-ink">ผู้ใช้</p>
+      <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-body/60">
+        <%= credit.user&.email %>
+      </p>
+    <% end %>
+  </div>
+  <div>
+    <%= f.label :carbon_credit, "จำนวน Carbon Credit", class: "mb-1 block font-medium text-ink" %>
+    <%= f.number_field :carbon_credit, value: credit&.carbon_credit, required: true, step: 1,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <div>
+    <%= f.label :carbon_offset_source_id, "แหล่งออฟเซ็ต (ไม่บังคับ)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.select :carbon_offset_source_id,
+          [["— ไม่ระบุ —", ""]] + @sources.map { |s| [(s.name_th.presence || s.name), s.id] },
+          { selected: credit&.carbon_offset_source_id },
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit new_record ? "เพิ่ม" : "บันทึก",
+        class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>

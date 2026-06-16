@@ -1,0 +1,28 @@
+<%= turbo_frame_tag "cc_list", data: { turbo_action: "advance" } do %>
+  <table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">ผู้ใช้</th>
+        <th class="px-4 py-3">จำนวน</th>
+        <th class="px-4 py-3">แหล่งออฟเซ็ต</th>
+        <th class="px-4 py-3">วันที่สร้าง</th>
+        <th class="px-4 py-3">วันที่แก้ไข</th>
+        <th class="px-4 py-3">ผู้แก้ไข</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody id="cc_rows">
+      <%= render partial: "carbon_credit", collection: @credits %>
+    </tbody>
+  </table>
+
+  <div class="mt-4 flex items-center gap-3">
+    <% if @page > 1 %>
+      <%= link_to "← ก่อนหน้า", carbon_credits_path(user_id: params[:user_id], page: @page - 1), class: "text-primary" %>
+    <% end %>
+    <span class="text-sm text-body/60">หน้า <%= @page %></span>
+    <% if @has_next %>
+      <%= link_to "ถัดไป →", carbon_credits_path(user_id: params[:user_id], page: @page + 1), class: "text-primary" %>
+    <% end %>
+  </div>
+<% end %>

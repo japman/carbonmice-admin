@@ -20,7 +20,11 @@ class CarbonCreditsController < ApplicationController
     result = MasterData::CreateCarbonCredit.call(actor: current_admin, attrs: create_params.to_h.symbolize_keys,
                                                  repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_credits_path, notice: "เพิ่ม carbon credit แล้ว"
+      @credit = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "เพิ่ม carbon credit แล้ว" }
+        format.html { redirect_to carbon_credits_path, notice: "เพิ่ม carbon credit แล้ว" }
+      end
     else
       defaults = { user_id: nil, carbon_credit: nil, carbon_offset_source_id: nil }
       @credit = Data.define(*defaults.keys).new(**defaults.merge(create_params.to_h.symbolize_keys))
@@ -43,7 +47,11 @@ class CarbonCreditsController < ApplicationController
                                                  attrs: update_params.to_h.symbolize_keys,
                                                  repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_credits_path, notice: "บันทึกแล้ว"
+      @credit = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกแล้ว" }
+        format.html { redirect_to carbon_credits_path, notice: "บันทึกแล้ว" }
+      end
     else
       @credit = repo.find(params[:id])
       @credit.assign_attributes(update_params.to_h)
@@ -59,7 +67,11 @@ class CarbonCreditsController < ApplicationController
     result = MasterData::DeleteCarbonCredit.call(actor: current_admin, id: params[:id],
                                                  repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_credits_path, notice: "ลบ carbon credit แล้ว (soft delete)"
+      @credit = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "ลบ carbon credit แล้ว (soft delete)" }
+        format.html { redirect_to carbon_credits_path, notice: "ลบ carbon credit แล้ว (soft delete)" }
+      end
     else
       redirect_to carbon_credits_path, alert: result.error
     end

@@ -158,4 +158,47 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
     assert_nil credit.reload.deleted_at
     assert_equal 50, credit.reload.carbon_credit
   end
+
+  # ---------------------------------------------------------------------------
+  # Turbo Stream tests
+  # ---------------------------------------------------------------------------
+
+  test "create via turbo_stream prepends a row, closes the modal, and toasts" do
+    login(@superadmin)
+    assert_difference -> { Core::CarbonCredit.kept.count } => 1 do
+      post carbon_credits_path, as: :turbo_stream, params: { carbon_credit: {
+        user_id: @user.id, carbon_credit: "100", carbon_offset_source_id: "" } }
+    end
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="prepend" target="cc_rows"}, response.body
+    assert_match %r{turbo-stream action="update" target="modal"}, response.body
+    assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
+    assert_match "เพิ่ม carbon credit แล้ว", response.body
+  end
+
+  test "create via HTML still redirects (no-JS fallback)" do
+    login(@superadmin)
+    post carbon_credits_path, params: { carbon_credit: {
+      user_id: @user.id, carbon_credit: "50", carbon_offset_source_id: "" } }
+    assert_redirected_to carbon_credits_path
+  end
+
+  test "update via turbo_stream replaces the row and toasts" do
+    login(@superadmin)
+    credit = create_core_carbon_credit!(user_id: @user.id, amount: 100)
+    patch carbon_credit_path(credit.id), as: :turbo_stream,
+      params: { carbon_credit: { carbon_credit: "250" } }
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="replace" target="#{ActionView::RecordIdentifier.dom_id(credit)}"}, response.body
+    assert_match "บันทึกแล้ว", response.body
+  end
+
+  test "destroy via turbo_stream removes the row and toasts" do
+    login(@superadmin)
+    credit = create_core_carbon_credit!(user_id: @user.id, amount: 100)
+    delete carbon_credit_path(credit.id), as: :turbo_stream
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(credit)}"}, response.body
+    assert_match "ลบ carbon credit แล้ว", response.body
+  end
 end

@@ -1,0 +1,17 @@
+<tr id="<%= dom_id(carbon_credit) %>" class="border-b border-gray-100">
+  <td class="px-4 py-3 text-ink"><%= carbon_credit.user&.email %></td>
+  <td class="px-4 py-3 font-medium text-ink"><%= carbon_credit.carbon_credit %></td>
+  <td class="px-4 py-3"><%= carbon_credit.carbon_offset_source ? (carbon_credit.carbon_offset_source.name_th.presence || carbon_credit.carbon_offset_source.name) : "—" %></td>
+  <td class="px-4 py-3"><%= carbon_credit.created_at.in_time_zone.strftime("%d/%m/%Y") %></td>
+  <td class="px-4 py-3"><%= carbon_credit.updated_at ? carbon_credit.updated_at.in_time_zone.strftime("%d/%m/%Y") : "—" %></td>
+  <td class="px-4 py-3 text-body/60"><%= carbon_credit.updated_by.presence || "—" %></td>
+  <td class="px-4 py-3 text-right whitespace-nowrap">
+    <% if can?(:manage_master_data) %>
+      <%= link_to "แก้ไข", edit_carbon_credit_path(carbon_credit.id),
+            data: { turbo_frame: "modal" }, class: "text-primary" %>
+      <%= button_to "ลบ", carbon_credit_path(carbon_credit.id), method: :delete,
+            form: { data: { turbo_confirm: "ลบ carbon credit #{carbon_credit.carbon_credit}? (soft delete)" }, class: "inline" },
+            class: "ml-3 cursor-pointer text-danger" %>
+    <% end %>
+  </td>
+</tr>
