@@ -36,5 +36,16 @@ module Persistence
     rescue ActiveRecord::RecordInvalid => e
       raise Ports::ValidationFailed, e.record.errors.full_messages.to_sentence
     end
+
+    # Permanent delete. public.events is Go-owned with ~24 FK-RESTRICT children;
+    # any referencing row makes destroy! raise InvalidForeignKey, which we surface
+    # as a validation failure rather than a 500 (the row stays put).
+    def hard_delete(id)
+      record = find(id)
+      record.destroy!
+      record
+    rescue ActiveRecord::InvalidForeignKey
+      raise Ports::ValidationFailed, "ลบถาวรไม่ได้: อีเว้นท์นี้มีข้อมูลอื่นอ้างอิงอยู่ (เช่น การปล่อยคาร์บอน/เอกสาร)"
+    end
   end
 end

@@ -112,4 +112,28 @@ class EventsTest < ApplicationSystemTestCase
 
     assert_selector "turbo-frame#modal .text-danger"
   end
+
+  test "a draft event can be permanently deleted via the styled confirm" do
+    seed_statuses
+    event = create_core_event!(name_thai: "ดราฟต์ลบได้", status: "draft")
+    login_admin
+    visit event_path(event.id)
+
+    assert_text "ลบอีเว้นท์ถาวร"
+    click_on "ลบถาวร"
+    click_on "ยืนยัน"
+
+    assert_current_path events_path
+    assert_text "ลบอีเว้นท์ถาวรแล้ว"
+    assert_no_selector "#ev_list", text: "ดราฟต์ลบได้"
+  end
+
+  test "a non-draft event show page does not offer permanent delete" do
+    seed_statuses
+    event = create_core_event!(name_thai: "กำลังรับสมัคร", status: "collecting")
+    login_admin
+    visit event_path(event.id)
+
+    assert_no_text "ลบอีเว้นท์ถาวร"
+  end
 end

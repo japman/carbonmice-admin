@@ -1,6 +1,6 @@
 class EventsController < ApplicationController
   before_action -> { authorize!(:view_operations) }, only: %i[index show]
-  before_action -> { authorize!(:manage_events) }, only: %i[edit update status]
+  before_action -> { authorize!(:manage_events) }, only: %i[edit update status destroy]
   before_action :load_event, only: %i[show edit]
 
   def index
@@ -46,6 +46,17 @@ class EventsController < ApplicationController
                                        to: params[:to].to_s, repo: repo, audit: audit)
     if result.success?
       redirect_to event_path(params[:id]), notice: "เปลี่ยนสถานะแล้ว"
+    else
+      redirect_to event_path(params[:id]), alert: result.error
+    end
+  rescue Ports::NotFound
+    redirect_to events_path, alert: "ไม่พบอีเว้นท์"
+  end
+
+  def destroy
+    result = Events::DeleteDraft.call(actor: current_admin, id: params[:id], repo: repo, audit: audit)
+    if result.success?
+      redirect_to events_path, notice: "ลบอีเว้นท์ถาวรแล้ว"
     else
       redirect_to event_path(params[:id]), alert: result.error
     end

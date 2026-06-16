@@ -150,4 +150,47 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_equal "งานทดสอบ", event.reload.name_thai
   end
+
+  test "destroy permanently deletes a draft event with an audit entry" do
+    login(@superadmin)
+    event = create_core_event!(name_thai: "ดราฟต์", status: "draft")
+    assert_difference -> { AuditLog.where(action: "events.deleted").count } => 1 do
+      assert_difference -> { Core::Event.where(id: event.id).count } => -1 do
+        delete event_path(event.id)
+      end
+    end
+    assert_redirected_to events_path
+    assert_not Core::Event.exists?(event.id)
+  end
+
+  test "destroy refuses a non-draft event and keeps it" do
+    login(@superadmin)
+    event = create_core_event!(status: "collecting")
+    assert_no_difference -> { Core::Event.where(id: event.id).count } do
+      delete event_path(event.id)
+    end
+    assert_redirected_to event_path(event.id)
+    assert Core::Event.exists?(event.id)
+  end
+
+  test "destroy is blocked when the draft event has referencing data" do
+    login(@superadmin)
+    event = create_core_event!(name_thai: "มีอ้างอิง", status: "draft")
+    create_core_emission!(event_id: event.id)
+    assert_no_difference -> { Core::Event.where(id: event.id).count } do
+      delete event_path(event.id)
+    end
+    assert_redirected_to event_path(event.id)
+    assert Core::Event.exists?(event.id)
+  end
+
+  test "viewer cannot destroy a draft event" do
+    viewer = AdminUser.create!(email_address: "v3@pea.co.th",
+                               password: "password-for-tests", name: "วิว", role: :viewer)
+    login(viewer)
+    event = create_core_event!(status: "draft")
+    delete event_path(event.id)
+    assert_redirected_to root_path
+    assert Core::Event.exists?(event.id)
+  end
 end

@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
   resources :admin_users, only: %i[index new create edit update]
   resources :audit_logs, only: :index
-  resources :events, only: %i[index show edit update] do
+  resources :events, only: %i[index show edit update destroy] do
     member { patch :status }
   end
   resources :app_users, only: %i[index edit update]
