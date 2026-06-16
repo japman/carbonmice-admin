@@ -18,7 +18,7 @@
           <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-3 py-1 text-primary"><%= event.event_status %></span></td>
           <td class="px-4 py-3"><%= event.province %></td>
           <td class="px-4 py-3 whitespace-nowrap"><%= event.created_at&.in_time_zone&.strftime("%d/%m/%Y") %></td>
-          <td class="px-4 py-3 text-right"><%= link_to "ดูรายละเอียด", event_path(event.id), class: "text-primary" %></td>
+          <td class="px-4 py-3 text-right"><%= link_to "ดูรายละเอียด", event_path(event.id), class: "text-primary", data: { turbo_frame: "_top" } %></td>
         </tr>
       <% end %>
     </tbody>

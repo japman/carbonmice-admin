@@ -19,6 +19,21 @@ class EventsTest < ApplicationSystemTestCase
     create_core_event_status!(name_eng: "in_progress", name_thai: "กำลังดำเนินการ", running_order: 3)
   end
 
+  test "ดูรายละเอียด escapes the list frame and opens the show page (not Content missing)" do
+    seed_statuses
+    event = create_core_event!(name_thai: "งานหนังสือ", status: "draft")
+    login_admin
+    visit events_path
+    within "#ev_list" do
+      click_on "ดูรายละเอียด"
+    end
+    # Without data-turbo-frame=_top the click is captured by the ev_list frame,
+    # loads the show page into it (no ev_list there) and renders "Content missing".
+    assert_no_text "Content missing"
+    assert_current_path event_path(event.id)
+    assert_selector "h1", text: "งานหนังสือ"
+  end
+
   test "typing in search live-filters ev_list and advances URL" do
     seed_statuses
     create_core_event!(name_thai: "งานหนังสือ", status: "draft")
