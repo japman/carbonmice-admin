@@ -28,4 +28,24 @@ class EmissionFactorsTest < ApplicationSystemTestCase
     end
     assert_current_path(/search=alpha/)
   end
+
+  test "add opens a modal and an invalid submit keeps it open with an error" do
+    login_admin
+    visit emission_factors_path
+    click_on "เพิ่มค่า EF"
+    assert_selector "turbo-frame#modal h2", text: "เพิ่มค่า EF"
+    fill_in "emission_factor[name]", with: "x"
+    click_on "สร้าง"
+    assert_selector "turbo-frame#modal", text: "เพิ่มค่า EF" # still open
+  end
+
+  test "edit opens a modal prefilled with the factor" do
+    create_core_emission_factor!(identifier: "ef_editme", value: 3.0)
+    login_admin
+    visit emission_factors_path
+    within "#ef_list" do
+      click_on "แก้ไข"
+    end
+    assert_selector "turbo-frame#modal", text: "ef_editme"
+  end
 end

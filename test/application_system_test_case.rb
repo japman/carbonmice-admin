@@ -1,7 +1,7 @@
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  # rack_test: fast, no browser dependency. The app is server-rendered —
-  # no JS-dependent flows yet. Swap to :selenium when they appear.
+  # rack_test by default (fast). JS-dependent specs override with
+  # `driven_by :selenium, using: :headless_chrome` per class (see EmissionFactorsTest).
   driven_by :rack_test
 end
