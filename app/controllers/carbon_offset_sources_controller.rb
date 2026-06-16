@@ -13,7 +13,11 @@ class CarbonOffsetSourcesController < ApplicationController
     result = MasterData::CreateCarbonOffsetSource.call(actor: current_admin, attrs: create_params.to_h.symbolize_keys,
                                                        repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_offset_sources_path, notice: "สร้างแหล่งออฟเซ็ตแล้ว"
+      @source = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "สร้างแหล่งออฟเซ็ตแล้ว" }
+        format.html { redirect_to carbon_offset_sources_path, notice: "สร้างแหล่งออฟเซ็ตแล้ว" }
+      end
     else
       @source = Data.define(:name, :name_th).new(name: create_params[:name], name_th: create_params[:name_th])
       flash.now[:alert] = result.error
@@ -32,7 +36,11 @@ class CarbonOffsetSourcesController < ApplicationController
                                                        name_th: update_params[:name_th],
                                                        repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_offset_sources_path, notice: "บันทึกแล้ว"
+      @source = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "บันทึกแล้ว" }
+        format.html { redirect_to carbon_offset_sources_path, notice: "บันทึกแล้ว" }
+      end
     else
       @source = repo.find(params[:id])
       @source.assign_attributes(name_th: update_params[:name_th])
@@ -47,7 +55,11 @@ class CarbonOffsetSourcesController < ApplicationController
     result = MasterData::DeleteCarbonOffsetSource.call(actor: current_admin, id: params[:id],
                                                        repo: repo, audit: audit)
     if result.success?
-      redirect_to carbon_offset_sources_path, notice: "ลบแหล่งออฟเซ็ตแล้ว (soft delete)"
+      @source = result.value
+      respond_to do |format|
+        format.turbo_stream { flash.now[:notice] = "ลบแหล่งออฟเซ็ตแล้ว (soft delete)" }
+        format.html { redirect_to carbon_offset_sources_path, notice: "ลบแหล่งออฟเซ็ตแล้ว (soft delete)" }
+      end
     else
       redirect_to carbon_offset_sources_path, alert: result.error
     end

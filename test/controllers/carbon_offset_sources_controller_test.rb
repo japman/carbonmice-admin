@@ -116,4 +116,47 @@ class CarbonOffsetSourcesControllerTest < ActionDispatch::IntegrationTest
     # source unchanged
     assert_nil source.reload.deleted_at
   end
+
+  # ---------------------------------------------------------------------------
+  # Turbo Stream tests
+  # ---------------------------------------------------------------------------
+
+  test "create via turbo_stream prepends a row, closes the modal, and toasts" do
+    login(@superadmin)
+    assert_difference -> { Core::CarbonOffsetSource.kept.count } => 1 do
+      post carbon_offset_sources_path, as: :turbo_stream, params: { carbon_offset_source: {
+        name: "Stream Source", name_th: "แหล่งสตรีม" } }
+    end
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="prepend" target="cos_rows"}, response.body
+    assert_match %r{turbo-stream action="update" target="modal"}, response.body
+    assert_match %r{turbo-stream action="append" target="toast_container"}, response.body
+    assert_match "สร้างแหล่งออฟเซ็ตแล้ว", response.body
+  end
+
+  test "create via HTML still redirects (no-JS fallback)" do
+    login(@superadmin)
+    post carbon_offset_sources_path, params: { carbon_offset_source: {
+      name: "HTML Source", name_th: nil } }
+    assert_redirected_to carbon_offset_sources_path
+  end
+
+  test "update via turbo_stream replaces the row and toasts" do
+    login(@superadmin)
+    source = create_core_offset_source!(name: "Update Source", name_th: "ก่อน")
+    patch carbon_offset_source_path(source.id), as: :turbo_stream,
+      params: { carbon_offset_source: { name_th: "หลัง" } }
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="replace" target="#{ActionView::RecordIdentifier.dom_id(source)}"}, response.body
+    assert_match "บันทึกแล้ว", response.body
+  end
+
+  test "destroy via turbo_stream removes the row and toasts" do
+    login(@superadmin)
+    source = create_core_offset_source!(name: "Delete Source")
+    delete carbon_offset_source_path(source.id), as: :turbo_stream
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %r{turbo-stream action="remove" target="#{ActionView::RecordIdentifier.dom_id(source)}"}, response.body
+    assert_match "ลบแหล่งออฟเซ็ตแล้ว", response.body
+  end
 end

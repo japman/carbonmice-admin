@@ -1,0 +1,4 @@
+<%= turbo_stream.remove dom_id(@source) %>
+<%= turbo_stream.append "toast_container" do %>
+  <%= render "shared/toast", kind: :notice, message: flash.now[:notice] %>
+<% end %>

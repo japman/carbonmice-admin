@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "cos_list" do %>
+  <table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-body/60">
+        <th class="px-4 py-3">ชื่อ (ไทย)</th>
+        <th class="px-4 py-3">ชื่อ (ระบบหลัก)</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody id="cos_rows">
+      <%= render partial: "carbon_offset_source", collection: @sources %>
+    </tbody>
+  </table>
+<% end %>

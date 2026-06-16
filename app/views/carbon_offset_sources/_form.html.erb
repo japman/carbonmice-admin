@@ -1,0 +1,24 @@
+<% if flash.now[:alert].present? %>
+  <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger"><%= flash.now[:alert] %></div>
+<% end %>
+
+<%= form_with url: url, method: method, scope: :carbon_offset_source, class: "space-y-5" do |f| %>
+  <div>
+    <% if new_record %>
+      <%= f.label :name, "ชื่อ (ระบบหลัก — แก้ไขภายหลังไม่ได้)", class: "mb-1 block font-medium text-ink" %>
+      <%= f.text_field :name, value: source&.name, required: true, maxlength: 255,
+            class: "w-full rounded-lg border border-gray-300 px-4 py-2.5 font-mono" %>
+    <% else %>
+      <%= f.label :name, "ชื่อ (ระบบหลักใช้ชื่อนี้ — แก้ไขไม่ได้) 🔒", class: "mb-1 block font-medium text-ink" %>
+      <%= f.text_field :name, value: source.name, disabled: true,
+            class: "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 font-mono text-body/60" %>
+    <% end %>
+  </div>
+  <div>
+    <%= f.label :name_th, "ชื่อภาษาไทย (ไม่จำเป็น)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.text_field :name_th, value: source&.name_th, maxlength: 255,
+          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+  </div>
+  <%= f.submit new_record ? "เพิ่มแหล่ง" : "บันทึก",
+        class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
+<% end %>
