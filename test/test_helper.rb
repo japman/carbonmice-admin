@@ -1,4 +1,16 @@
 ENV["RAILS_ENV"] ||= "test"
+
+# Code coverage — must start before any application code is loaded so every
+# file is tracked. Opt in by running tests with COVERAGE=1.
+if ENV["COVERAGE"]
+  require "simplecov"
+  SimpleCov.start "rails" do
+    add_filter "/test/"
+    # Domain ports are documentation-only contracts (empty modules), not code.
+    add_filter "/app/domain/ports/"
+  end
+end
+
 require_relative "../config/environment"
 require "rails/test_help"
 
