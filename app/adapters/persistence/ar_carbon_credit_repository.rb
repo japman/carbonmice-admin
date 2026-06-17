@@ -8,6 +8,12 @@ module Persistence
       raise Ports::NotFound
     end
 
+    def find_kept_by(user_id:, source_id:)
+      Core::CarbonCredit.kept.find_by(user_id: user_id, carbon_offset_source_id: source_id)
+    rescue ActiveRecord::StatementInvalid
+      nil
+    end
+
     def list(user_id: nil, page: 1)
       scope = Core::CarbonCredit.kept.includes(:user, :carbon_offset_source).order(created_at: :desc)
       scope = scope.where(user_id: user_id) if user_id.present?
