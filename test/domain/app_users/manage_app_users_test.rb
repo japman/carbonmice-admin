@@ -1,6 +1,6 @@
 require_relative "../../domain_helper"
 
-FakeAppUser = Struct.new(:id, :email, :display_name, :role, :event_quota, :updated_by,
+FakeAppUser = Struct.new(:id, :email, :display_name, :role, :event_quota, :is_package_user, :updated_by,
                          keyword_init: true)
 
 class FakeAppUserRepo
@@ -13,9 +13,10 @@ class FakeAppUserRepo
     row.updated_by = updated_by
     row
   end
-  def update_quota(id, quota:, updated_by:)
+  def update_quota(id, quota:, updated_by:, mark_package: false)
     row = find(id)
     row.event_quota = quota
+    row.is_package_user = true if mark_package
     row.updated_by = updated_by
     row
   end
@@ -29,7 +30,8 @@ class ManageAppUsersTest < Minitest::Test
     @audit.define_singleton_method(:record) { |**entry| entries << entry }
     @actor = Struct.new(:id, :role, :email_address).new(1, "admin", "ad@pea.co.th")
     @repo = FakeAppUserRepo.new(
-      "u1" => FakeAppUser.new(id: "u1", email: "u@x.com", role: "user", event_quota: 2)
+      "u1" => FakeAppUser.new(id: "u1", email: "u@x.com", role: "user", event_quota: 2,
+                              is_package_user: false)
     )
   end
 
@@ -55,7 +57,28 @@ class ManageAppUsersTest < Minitest::Test
                                         repo: @repo, audit: @audit)
     assert result.success?
     assert_equal 5, @repo.find("u1").event_quota
-    assert_equal({ "event_quota" => { "from" => 2, "to" => 5 } }, @audit_entries.last[:changes])
+    assert_equal({ "from" => 2, "to" => 5 }, @audit_entries.last[:changes]["event_quota"])
+  end
+
+  def test_first_quota_adjustment_flags_package_user_and_audits_it
+    result = AppUsers::AdjustQuota.call(actor: @actor, id: "u1", quota: "5",
+                                        repo: @repo, audit: @audit)
+    assert result.success?
+    assert @repo.find("u1").is_package_user, "first adjustment must flag the user as package"
+    assert_equal({ "event_quota" => { "from" => 2, "to" => 5 },
+                   "is_package_user" => { "from" => false, "to" => true } },
+                 @audit_entries.last[:changes])
+  end
+
+  def test_subsequent_quota_adjustment_does_not_reflag_or_reaudit_package
+    AppUsers::AdjustQuota.call(actor: @actor, id: "u1", quota: "5", repo: @repo, audit: @audit)
+    @audit_entries.clear
+    result = AppUsers::AdjustQuota.call(actor: @actor, id: "u1", quota: "8",
+                                        repo: @repo, audit: @audit)
+    assert result.success?
+    assert @repo.find("u1").is_package_user, "flag stays true once set"
+    assert_equal({ "event_quota" => { "from" => 5, "to" => 8 } }, @audit_entries.last[:changes])
+    refute @audit_entries.last[:changes].key?("is_package_user"), "must not re-audit the flag"
   end
 
   def test_negative_or_garbage_quota_is_rejected

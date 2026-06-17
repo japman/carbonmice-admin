@@ -14,9 +14,11 @@ module AppUsers
 
       before = repo.find(id)
       from = before.event_quota
-      record = repo.update_quota(id, quota: quota, updated_by: AuditIdentity.for(actor))
-      audit.record(action: "app_users.quota_adjusted", actor: actor, target: record,
-                   changes: { "event_quota" => { "from" => from, "to" => quota } })
+      first_package = !before.is_package_user
+      record = repo.update_quota(id, quota: quota, mark_package: first_package, updated_by: AuditIdentity.for(actor))
+      changes = { "event_quota" => { "from" => from, "to" => quota } }
+      changes["is_package_user"] = { "from" => false, "to" => true } if first_package
+      audit.record(action: "app_users.quota_adjusted", actor: actor, target: record, changes: changes)
       Result.success(record)
     rescue Ports::NotFound
       Result.failure("ไม่พบผู้ใช้งาน")
