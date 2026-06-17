@@ -52,9 +52,10 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
 
   test "creates a carbon credit with audit entry" do
     login(@superadmin)
+    source = create_core_offset_source!(name: "Solar")
     assert_difference -> { AuditLog.where(action: "master_data.carbon_credit_created").count } => 1 do
       post carbon_credits_path, params: { carbon_credit: {
-        user_id: @user.id, carbon_credit: "200", carbon_offset_source_id: "" } }
+        user_id: @user.id, carbon_credit: "200", carbon_offset_source_id: source.id } }
     end
     assert_redirected_to carbon_credits_path
     credit = Core::CarbonCredit.kept.find_by!(user_id: @user.id)
@@ -165,9 +166,10 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
 
   test "create via turbo_stream prepends a row, closes the modal, and toasts" do
     login(@superadmin)
+    source = create_core_offset_source!(name: "Solar")
     assert_difference -> { Core::CarbonCredit.kept.count } => 1 do
       post carbon_credits_path, as: :turbo_stream, params: { carbon_credit: {
-        user_id: @user.id, carbon_credit: "100", carbon_offset_source_id: "" } }
+        user_id: @user.id, carbon_credit: "100", carbon_offset_source_id: source.id } }
     end
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %r{turbo-stream action="prepend" target="cc_rows"}, response.body
@@ -178,8 +180,9 @@ class CarbonCreditsControllerTest < ActionDispatch::IntegrationTest
 
   test "create via HTML still redirects (no-JS fallback)" do
     login(@superadmin)
+    source = create_core_offset_source!(name: "Solar")
     post carbon_credits_path, params: { carbon_credit: {
-      user_id: @user.id, carbon_credit: "50", carbon_offset_source_id: "" } }
+      user_id: @user.id, carbon_credit: "50", carbon_offset_source_id: source.id } }
     assert_redirected_to carbon_credits_path
   end
 

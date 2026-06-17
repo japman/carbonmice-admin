@@ -37,6 +37,7 @@ class CarbonCreditsTest < ApplicationSystemTestCase
 
   test "creating a credit shows the new row and a toast, and closes the modal" do
     user = create_core_user!(email: "newcredit@example.com")
+    create_core_offset_source!(name: "Solar")
     login_admin
     visit carbon_credits_path
     click_link "เพิ่ม carbon credit"
@@ -44,6 +45,7 @@ class CarbonCreditsTest < ApplicationSystemTestCase
     within "turbo-frame#modal" do
       select "newcredit@example.com", from: "carbon_credit[user_id]"
       fill_in "carbon_credit[carbon_credit]", with: "150"
+      select "Solar", from: "carbon_credit[carbon_offset_source_id]"
       click_on "เพิ่ม"
     end
     assert_selector "#toast_container", text: "เพิ่ม carbon credit แล้ว"
@@ -84,18 +86,40 @@ class CarbonCreditsTest < ApplicationSystemTestCase
 
   test "server-rejected create keeps modal open with error" do
     user = create_core_user!(email: "rejectcredit@example.com")
+    create_core_offset_source!(name: "Solar")
     login_admin
     visit carbon_credits_path
     click_link "เพิ่ม carbon credit"
     assert_selector "turbo-frame#modal h2", text: "เพิ่ม carbon credit"
     within "turbo-frame#modal" do
       select "rejectcredit@example.com", from: "carbon_credit[user_id]"
+      select "Solar", from: "carbon_credit[carbon_offset_source_id]"
       # amount 0 is rejected server-side (domain validates > 0). The field has no
       # min: constraint (see _form.html.erb), so this reaches the server and
-      # exercises the render :new, 422 turbo-frame re-render path.
+      # exercises the render :new, 422 turbo-frame re-render path. A source is
+      # selected so the now-required source field does not block submission first.
       fill_in "carbon_credit[carbon_credit]", with: "0"
       click_on "เพิ่ม"
     end
     assert_selector "turbo-frame#modal .text-danger"
+  end
+
+  test "adding a credit for an existing user+source merges by summing into the same row" do
+    user = create_core_user!(email: "merge@example.com")
+    source = create_core_offset_source!(name: "Solar")
+    existing = create_core_carbon_credit!(user_id: user.id, amount: 100, source_id: source.id)
+    login_admin
+    visit carbon_credits_path
+    click_link "เพิ่ม carbon credit"
+    within "turbo-frame#modal" do
+      select "merge@example.com", from: "carbon_credit[user_id]"
+      fill_in "carbon_credit[carbon_credit]", with: "30"
+      select "Solar", from: "carbon_credit[carbon_offset_source_id]"
+      click_on "เพิ่ม"
+    end
+    assert_selector "#toast_container", text: "เพิ่ม carbon credit แล้ว"
+    # Same row updated to the summed total; no second row added.
+    assert_selector "##{dom_id(existing)}", text: "130"
+    assert_equal 1, all("#cc_rows tr").size
   end
 end

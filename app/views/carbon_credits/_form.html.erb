@@ -27,11 +27,11 @@
           class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>
   <div>
-    <%= f.label :carbon_offset_source_id, "แหล่งออฟเซ็ต (ไม่บังคับ)", class: "mb-1 block font-medium text-ink" %>
+    <%= f.label :carbon_offset_source_id, "แหล่งออฟเซ็ต", class: "mb-1 block font-medium text-ink" %>
     <%= f.select :carbon_offset_source_id,
-          [["— ไม่ระบุ —", ""]] + @sources.map { |s| [(s.name_th.presence || s.name), s.id] },
+          [["เลือกแหล่งออฟเซ็ต", ""]] + @sources.map { |s| [(s.name_th.presence || s.name), s.id] },
           { selected: credit&.carbon_offset_source_id },
-          class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
+          required: new_record, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
   </div>
   <%= f.submit new_record ? "เพิ่ม" : "บันทึก",
         class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>

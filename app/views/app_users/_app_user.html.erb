@@ -3,6 +3,9 @@
   <td class="px-4 py-3"><%= app_user.email %></td>
   <td class="px-4 py-3"><%= app_user.role %></td>
   <td class="px-4 py-3"><%= app_user.event_quota %></td>
+  <%# @credit_totals is nil-safe: the update.turbo_stream re-render sets it for the one row,
+      but guard anyway so a missing entry renders a dash rather than raising. %>
+  <td class="px-4 py-3"><%= @credit_totals&.dig(app_user.id) || "—" %></td>
   <td class="px-4 py-3"><%= app_user.is_package_user ? "ใช่" : "—" %></td>
   <td class="px-4 py-3 text-right">
     <% if can?(:manage_app_users) %>

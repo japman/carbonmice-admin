@@ -13,6 +13,9 @@ class FakeCreditRepo
     row = FakeCredit.new(id: (@rows.size + 1).to_s, deleted: false, created_by: created_by, **attrs)
     @rows[row.id] = row
   end
+  def find_kept_by(user_id:, source_id:)
+    @rows.values.find { |r| !r.deleted && r.user_id == user_id && r.carbon_offset_source_id == source_id }
+  end
   def update(id, attrs, updated_by:)
     row = find(id)
     attrs.each { |k, v| row[k] = v }
@@ -39,7 +42,7 @@ class CarbonCreditDomainTest < Minitest::Test
   end
 
   def valid_attrs
-    { user_id: "user-uuid-1", carbon_credit: "100", carbon_offset_source_id: "" }
+    { user_id: "user-uuid-1", carbon_credit: "100", carbon_offset_source_id: "src-1" }
   end
 
   # ---------------------------------------------------------------------------
@@ -81,7 +84,7 @@ class CarbonCreditDomainTest < Minitest::Test
                attrs: valid_attrs.merge(carbon_credit: "50"), repo: @repo, audit: @audit)
     assert result.success?
     assert_equal 50, result.value.carbon_credit
-    assert_nil result.value.carbon_offset_source_id   # blank string → nil
+    assert_equal "src-1", result.value.carbon_offset_source_id
     assert_equal "carbonmice-admin:ad@pea.co.th", result.value.created_by
     assert_equal "master_data.carbon_credit_created", @audit_entries.last[:action]
     assert_equal({ "user_id" => "user-uuid-1", "carbon_credit" => 50 }, @audit_entries.last[:changes])
@@ -93,6 +96,41 @@ class CarbonCreditDomainTest < Minitest::Test
                repo: @repo, audit: @audit)
     assert result.success?
     assert_equal "src-1", result.value.carbon_offset_source_id
+  end
+
+  def test_create_requires_source
+    result = MasterData::CreateCarbonCredit.call(actor: @admin,
+               attrs: valid_attrs.merge(carbon_offset_source_id: ""), repo: @repo, audit: @audit)
+    assert result.failure?
+    assert_match "กรุณาเลือกแหล่งออฟเซ็ต", result.error
+    assert_empty @audit_entries
+  end
+
+  def test_create_merges_into_existing_user_and_source_by_summing
+    first = MasterData::CreateCarbonCredit.call(actor: @admin,
+              attrs: valid_attrs.merge(carbon_credit: "100"), repo: @repo, audit: @audit)
+    assert first.success?
+
+    second = MasterData::CreateCarbonCredit.call(actor: @admin,
+               attrs: valid_attrs.merge(carbon_credit: "30"), repo: @repo, audit: @audit)
+    assert second.success?
+
+    # Same row, summed amount — not a new row.
+    assert_equal first.value.id, second.value.id
+    assert_equal 130, second.value.carbon_credit
+    assert_equal 1, @repo.rows.size
+    assert_equal "master_data.carbon_credit_updated", @audit_entries.last[:action]
+    assert_equal({ "carbon_credit" => { "from" => 100, "to" => 130 } }, @audit_entries.last[:changes])
+  end
+
+  def test_create_does_not_merge_when_source_differs
+    MasterData::CreateCarbonCredit.call(actor: @admin,
+      attrs: valid_attrs.merge(carbon_credit: "100", carbon_offset_source_id: "src-1"),
+      repo: @repo, audit: @audit)
+    MasterData::CreateCarbonCredit.call(actor: @admin,
+      attrs: valid_attrs.merge(carbon_credit: "40", carbon_offset_source_id: "src-2"),
+      repo: @repo, audit: @audit)
+    assert_equal 2, @repo.rows.size
   end
 
   # ---------------------------------------------------------------------------

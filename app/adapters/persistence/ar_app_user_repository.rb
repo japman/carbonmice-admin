@@ -24,9 +24,11 @@ module Persistence
       record
     end
 
-    def update_quota(id, quota:, updated_by:)
+    def update_quota(id, quota:, updated_by:, mark_package: false)
       record = find(id)
-      record.update!(event_quota: quota, updated_by: updated_by)
+      attrs = { event_quota: quota, updated_by: updated_by }
+      attrs[:is_package_user] = true if mark_package
+      record.update!(**attrs)
       record
     end
   end
