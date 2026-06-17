@@ -50,6 +50,25 @@ class AppUsersTest < ApplicationSystemTestCase
     assert_no_selector "turbo-frame#modal div"
   end
 
+  test "lists the total carbon credit summed across offset sources" do
+    user = create_core_user!(email: "credits_au@example.com", display_name: "เครดิตรวม")
+    s1 = create_core_offset_source!(name: "Solar")
+    s2 = create_core_offset_source!(name: "Wind")
+    create_core_carbon_credit!(user_id: user.id, amount: 100, source_id: s1.id)
+    create_core_carbon_credit!(user_id: user.id, amount: 50, source_id: s2.id)
+    login_admin
+    visit app_users_path
+    # 5th column is the summed credit total (after name, email, role, quota).
+    assert_selector "##{dom_id(user)} td:nth-child(5)", text: "150"
+  end
+
+  test "shows a dash when a user has no carbon credits" do
+    user = create_core_user!(email: "nocredit_au@example.com", display_name: "ไม่มีเครดิต")
+    login_admin
+    visit app_users_path
+    assert_selector "##{dom_id(user)} td:nth-child(5)", text: "—"
+  end
+
   test "server-rejected submit (invalid role) keeps modal open with error" do
     user = create_core_user!(email: "reject_au@example.com", role: "user", quota: 0)
     login_admin

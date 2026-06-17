@@ -7,6 +7,7 @@ class AppUsersController < ApplicationController
     rows = repo.list(search: params[:search].presence, page: page).to_a
     @has_next = rows.size > Persistence::ArAppUserRepository::PAGE_SIZE
     @app_users = rows.first(Persistence::ArAppUserRepository::PAGE_SIZE)
+    @credit_totals = credit_totals_for(@app_users.map(&:id))
     @page = page
   end
 
@@ -36,6 +37,7 @@ class AppUsersController < ApplicationController
 
     if errors.empty?
       @app_user = repo.find(params[:id])
+      @credit_totals = credit_totals_for([ @app_user.id ])
       respond_to do |format|
         format.turbo_stream { flash.now[:notice] = "บันทึกการแก้ไขแล้ว" }
         format.html { redirect_to app_users_path, notice: "บันทึกการแก้ไขแล้ว" }
@@ -53,4 +55,9 @@ class AppUsersController < ApplicationController
   private
     def update_params = params.require(:app_user).permit(:role, :event_quota)
     def repo = Persistence::ArAppUserRepository.new
+
+    # user_id => summed kept carbon_credit, in one grouped query (avoids N+1).
+    def credit_totals_for(ids)
+      Core::CarbonCredit.kept.where(user_id: ids).group(:user_id).sum(:carbon_credit)
+    end
 end
