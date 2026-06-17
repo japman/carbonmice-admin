@@ -35,4 +35,25 @@ class AuditLogsTest < ApplicationSystemTestCase
     end
     assert_current_path(/action_prefix=admin_users/)
   end
+
+  test "clicking ถัดไป re-renders al_list and advances the URL with page" do
+    login_superadmin
+    # login already wrote auth.login_succeeded. Add 25 more so a 2nd page exists.
+    rows = Array.new(25) do |i|
+      { action: "admin_users.created", actor_id: @superadmin.id,
+        actor_email: @superadmin.email_address, change_set: {}, created_at: (i + 1).minutes.ago }
+    end
+    AuditLog.insert_all(rows)
+
+    visit audit_logs_path
+    assert_selector "#al_list a", text: "ถัดไป →"
+
+    within "#al_list" do
+      click_link "ถัดไป →"
+    end
+
+    # The frame re-renders showing the previous-page link, and the URL advances.
+    assert_selector "#al_list a", text: "← ก่อนหน้า"
+    assert_current_path(/page=2/)
+  end
 end

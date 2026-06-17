@@ -1,10 +1,4 @@
 <%= turbo_frame_tag "al_list", data: { turbo_action: "advance" } do %>
-  <% if @truncated %>
-    <p class="mt-4 text-sm font-medium text-amber-700">
-      แสดงเพียง <%= Persistence::ArAuditLogQuery::DEFAULT_LIMIT %> รายการล่าสุด — ผลลัพธ์อาจถูกตัดทอน กรุณาใช้ตัวกรองช่วงวันที่
-    </p>
-  <% end %>
-
   <table class="mt-6 w-full rounded-xl bg-white shadow-sm text-sm">
     <thead>
       <tr class="border-b border-gray-200 text-left text-body/60">
@@ -29,4 +23,14 @@
       <% end %>
     </tbody>
   </table>
+
+  <div class="mt-4 flex items-center gap-3">
+    <% if @page > 1 %>
+      <%= link_to "← ก่อนหน้า", audit_logs_path(action_prefix: params[:action_prefix], from: params[:from], to: params[:to], page: @page - 1), class: "text-primary" %>
+    <% end %>
+    <span class="text-sm text-body/60">หน้า <%= @page %></span>
+    <% if @has_next %>
+      <%= link_to "ถัดไป →", audit_logs_path(action_prefix: params[:action_prefix], from: params[:from], to: params[:to], page: @page + 1), class: "text-primary" %>
+    <% end %>
+  </div>
 <% end %>

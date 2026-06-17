@@ -10,6 +10,17 @@ class AuditLogsControllerTest < ActionDispatch::IntegrationTest
     post session_path, params: { email_address: user.email_address, password: "password-for-tests" }
   end
 
+  # Inserts `count` audit entries with strictly descending timestamps (index 0 is
+  # newest) so newest-first ordering and page slicing are deterministic. insert_all
+  # bypasses the readonly model guard — acceptable in test fixtures.
+  def seed_entries(count, action: "seed.event")
+    rows = Array.new(count) do |i|
+      { action: action, actor_id: @superadmin.id, actor_email: @superadmin.email_address,
+        change_set: {}, created_at: (i + 1).minutes.ago }
+    end
+    AuditLog.insert_all(rows)
+  end
+
   test "superadmin sees entries newest first" do
     login(@superadmin)   # writes auth.login_succeeded
     get audit_logs_path
@@ -54,16 +65,36 @@ class AuditLogsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "admin_users.created", count: 0
   end
 
-  test "shows truncation notice when the limit is hit" do
-    login(@superadmin)
-    # insert_all bypasses the readonly model guard — acceptable in test fixtures.
-    rows = Array.new(Persistence::ArAuditLogQuery::DEFAULT_LIMIT) do
-      { action: "admin_users.created", actor_id: @superadmin.id,
-        actor_email: @superadmin.email_address, change_set: {}, created_at: Time.current }
-    end
-    AuditLog.insert_all(rows)
+  test "page 1 shows 25 rows and a next-page link when more exist" do
+    login(@superadmin)            # adds one entry (auth.login_succeeded), newest
+    seed_entries(25)              # 26 total => page 1 is full, a 2nd page exists
     get audit_logs_path
-    assert_match "อาจถูกตัดทอน", response.body
+    assert_response :success
+    assert_select "tbody tr", count: 25
+    assert_select "a", text: /ถัดไป/ do |links|
+      assert_includes links.first["href"], "page=2"
+    end
+  end
+
+  test "page 2 shows the remaining rows and no next-page link" do
+    login(@superadmin)            # 1 entry
+    seed_entries(25)              # 26 total => page 2 holds the single oldest row
+    get audit_logs_path, params: { page: 2 }
+    assert_response :success
+    assert_select "tbody tr", count: 1
+    assert_select "a", text: /ถัดไป/, count: 0
+  end
+
+  test "pagination preserves the action_prefix filter in page links" do
+    login(@superadmin)            # auth.login_succeeded is filtered out
+    seed_entries(26, action: "admin_users.created")  # 26 matching => 2 pages
+    get audit_logs_path, params: { action_prefix: "admin_users." }
+    assert_select "tbody tr", count: 25
+    assert_select "a", text: /ถัดไป/ do |links|
+      href = links.first["href"]
+      assert_includes href, "action_prefix=admin_users"
+      assert_includes href, "page=2"
+    end
   end
 
   test "malformed date params are ignored" do
