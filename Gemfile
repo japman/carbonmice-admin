@@ -55,6 +55,9 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Code coverage report [https://github.com/simplecov-ruby/simplecov]
+  gem "simplecov", require: false
 end
 
 gem "solid_cache", "~> 1.0"
