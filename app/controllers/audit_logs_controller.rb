@@ -2,11 +2,14 @@ class AuditLogsController < ApplicationController
   before_action -> { authorize!(:view_audit_log) }
 
   def index
+    page = params[:page].to_i.clamp(1, 10_000)
     result = Audit::ListEntries.call(actor: current_admin, query: Persistence::ArAuditLogQuery.new,
-                                     filters: filters)
+                                     filters: filters, page: page)
     raise ApplicationController::NotAuthorized if result.failure?
-    @entries = result.value
-    @truncated = @entries.size >= Persistence::ArAuditLogQuery::DEFAULT_LIMIT
+    rows = result.value.to_a
+    @has_next = rows.size > Persistence::ArAuditLogQuery::PAGE_SIZE
+    @entries = rows.first(Persistence::ArAuditLogQuery::PAGE_SIZE)
+    @page = page
   end
 
   private
