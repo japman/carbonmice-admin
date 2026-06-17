@@ -3,7 +3,7 @@ module Events
     # Descriptive fields only. Everything else on events is either
     # Go-computed (quota_deducted, payment_status, snapshots) or has its
     # own audited path (event_status via Events::ChangeStatus).
-    EDITABLE = [ :name_thai, :name_eng, :area_name, :province ].freeze
+    EDITABLE = [ :name_thai, :name_eng, :area_name ].freeze
 
     def self.call(actor:, id:, attrs:, repo:, audit:)
       return Result.failure("คุณไม่มีสิทธิ์จัดการอีเว้นท์") unless AdminAuth::AccessPolicy.allows?(role: actor.role, action: :manage_events)

@@ -44,6 +44,15 @@ class UpdateDetailsTest < Minitest::Test
     assert_empty @audit_entries
   end
 
+  def test_rejects_province_as_no_longer_editable
+    result = Events::UpdateDetails.call(actor: @superadmin, id: "e1",
+                                        attrs: { province: "เชียงใหม่" }, repo: @repo, audit: @audit)
+    assert result.failure?
+    assert_match "ฟิลด์ไม่ได้รับอนุญาต", result.error
+    assert_equal "กรุงเทพมหานคร", @repo.find("e1").province   # unchanged
+    assert_empty @audit_entries
+  end
+
   def test_rejects_empty_payload
     result = Events::UpdateDetails.call(actor: @superadmin, id: "e1",
                                         attrs: {}, repo: @repo, audit: @audit)

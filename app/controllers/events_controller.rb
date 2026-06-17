@@ -71,6 +71,6 @@ class EventsController < ApplicationController
       redirect_to events_path, alert: "ไม่พบอีเว้นท์"
     end
 
-    def update_params = params.require(:event).permit(:name_thai, :name_eng, :area_name, :province)
+    def update_params = params.require(:event).permit(:name_thai, :name_eng, :area_name)
     def repo = Persistence::ArEventRepository.new
 end

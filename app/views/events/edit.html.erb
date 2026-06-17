@@ -16,10 +16,6 @@
       <%= f.label :area_name, "สถานที่", class: "mb-1 block font-medium text-ink" %>
       <%= f.text_field :area_name, value: @event.area_name, maxlength: 255, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
     </div>
-    <div>
-      <%= f.label :province, "จังหวัด", class: "mb-1 block font-medium text-ink" %>
-      <%= f.text_field :province, value: @event.province, maxlength: 255, class: "w-full rounded-lg border border-gray-300 px-4 py-2.5" %>
-    </div>
     <%= f.submit "บันทึก", class: "rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-dark cursor-pointer" %>
   <% end %>
 <% end %>
