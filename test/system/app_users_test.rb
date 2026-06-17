@@ -58,6 +58,8 @@ class AppUsersTest < ApplicationSystemTestCase
     create_core_carbon_credit!(user_id: user.id, amount: 50, source_id: s2.id)
     login_admin
     visit app_users_path
+    # The column header reads the full carbon-credit label.
+    assert_selector "th", text: "คาร์บอนเครดิตรวม"
     # 5th column is the summed credit total (after name, email, role, quota).
     assert_selector "##{dom_id(user)} td:nth-child(5)", text: "150"
   end
