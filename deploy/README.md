@@ -114,26 +114,39 @@ applied to a cluster — needs a real namespace, DB roles, registry, and ingress
 4. **ArgoCD:** an Application pointing the shared chart at this repo's
    `values.<env>.yml` for the right namespace. Confirm it honours
    `argocd.argoproj.io/hook: PreSync` on `extraObjects`.
-   **Sequencing:** run the app CI once (push `develop`) so `update-job` writes a
-   real image tag before creating/enabling the Application (avoids an empty-tag sync).
-   **First-deploy Secret ordering:** the PreSync migrate Job mounts the
-   Vault-synced Secret `mice-admin-console-fs-secret`. ArgoCD applies that Secret
-   during the Sync phase — *after* PreSync — so on a first-ever sync the Secret
-   does not yet exist and the PreSync Job fails, blocking the sync. Before the
-   first ArgoCD sync, force the VaultStaticSecret to reconcile so the Secret is
-   present in the cluster:
-   ```bash
-   kubectl annotate vaultstaticsecret mice-admin-console-fs-secret \
-     force-sync=$(date +%s) --overwrite
-   ```
-   (or the platform's equivalent reconcile trigger). Steady-state syncs are
-   unaffected — the Secret exists before any subsequent PreSync.
+   **First-deploy order:**
+   1. Ensure the K8s Secret `mice-admin-console-fs-secret` EXISTS in the target
+      namespace **before** the first ArgoCD sync, so the PreSync migrate Job can
+      start. The `VaultStaticSecret` resource is part of the chart's manifests and
+      ArgoCD only applies it during the Sync phase — *after* PreSync — so on a
+      first-ever sync the Secret does not yet exist and the PreSync Job would fail.
+      Provision the Secret out-of-band via either: (a) apply the chart's
+      `VaultStaticSecret` manifest directly (so the Vault Secrets Operator
+      reconciles it into the Secret), then confirm with
+      `kubectl get secret mice-admin-console-fs-secret -n <namespace>`; or
+      (b) have the platform pre-create the Secret. As an illustrative example,
+      some operators trigger VSO reconcile via annotation:
+      ```bash
+      kubectl annotate vaultstaticsecret mice-admin-console-fs-secret \
+        force-sync=$(date +%s) --overwrite
+      ```
+      **Confirm PEA's Vault Secrets Operator reconcile method (annotation/patch)
+      — the exact trigger may differ.**
+   2. Push `develop` once so `update-job` writes a real image tag into the values
+      (avoids an empty-tag sync).
+   3. Create/enable the ArgoCD Application for its first sync.
+   Steady-state syncs are unaffected — the Secret exists before any subsequent
+   PreSync.
 5. **GitLab CI/CD variables:**
    - App repo (`developer/mice-admin/fullstack/mice-admin-console-fs`):
      `HARBOR_URL`, `HARBOR_ROBOT_NAME`, `HARBOR_ROBOT_TOKEN` (masked).
    - Deployment repo (`developer/mice-admin/deployment`): `IMAGE_REPOSITORY`
      (= `harbor-app.pea.co.th/mice-admin/fullstack/mice-admin-console-fs`),
      `DEPLOY_ACCESS_TOKEN` (masked). Default branch must be `main`.
+   > **Note — `DEPLOY_ENVIRONMENT`:** The image-path suffix (`/uat`, `/prod`;
+   > empty for dev) comes from `DEPLOY_ENVIRONMENT`, which the shared
+   > `update-deployment-template` sets and forwards via the pipeline trigger —
+   > operators don't set it manually; confirm with the platform team.
 
 ## Assumptions to confirm with platform
 - Whether the shared chart runs `tpl` over `extraObjects` (if yes, the migrate Job
