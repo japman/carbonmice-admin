@@ -11,9 +11,12 @@
 # create the admin schema first — it NEVER migrates the Go-owned `public` schema.
 
 ARG RUBY_VERSION=4.0.0
+# PEA build.yml passes PROXY_IMAGE_PREFIX=docker-registry-mirror.pea.co.th/library
+# (runners cannot reach docker.io). Default keeps local builds working.
+ARG PROXY_IMAGE_PREFIX=docker.io/library
 
 ########################  base  ########################
-FROM ruby:${RUBY_VERSION}-slim AS base
+FROM ${PROXY_IMAGE_PREFIX}/ruby:${RUBY_VERSION}-slim AS base
 WORKDIR /rails
 
 # Runtime packages: libpq for pg, postgresql-client for pg_isready, tzdata, curl for healthchecks.
