@@ -100,11 +100,32 @@ applied to a cluster — needs a real namespace, DB roles, registry, and ingress
   **migrator** DB role, `args: ["./bin/rails","db:migrate"]` (image ENTRYPOINT still
   waits for Postgres). Runs before each sync; cleaned up by `hook-delete-policy`.
 
+> **Security note — web pod sees migrator credentials:** The web Deployment uses `envFrom`
+> on the whole `mice-admin-console-fs-secret`, which also contains `MIGRATOR_DB_USER` and
+> `MIGRATOR_DB_PASSWORD`. Those migrator credentials therefore land in the web pod's
+> environment even though the web pod only uses the app-role `DB_USER`/`DB_PASSWORD`.
+> The least-privilege role split holds for **normal operation**, but is **not** a hard
+> security boundary as currently wired — a compromised or exec'd web pod could read
+> `MIGRATOR_DB_PASSWORD` and perform DDL or rewrite the append-only `audit_logs`.
+> Harden before/at the hardening sprint by one of:
+> (a) if the shared chart's `deployment.env` supports `valueFrom`/`secretKeyRef`, give
+>     the web pod ONLY the three app keys (`RAILS_MASTER_KEY`, `DB_USER`, `DB_PASSWORD`)
+>     via `secretKeyRef` instead of `envFrom`; or
+> (b) store migrator creds in a separate Vault path + a second `VaultStaticSecret` that
+>     ONLY the migrate Job references.
+
 ## One-time prerequisites (per environment) — platform/DBA
 1. **DB roles:** apply `db/roles/least_privilege.sql` to the shared carbonmice
    Postgres; set passwords for `carbonmice_admin_app` and `carbonmice_admin_migrator`.
    Confirm the in-cluster Postgres DNS used by the Go backend and set it as
    `DB_HOST` in the values (currently `postgres.carbonmice.svc.cluster.local`).
+   **`DB_HOST` and `DB_NAME` must be sourced from the same place the Go backend gets
+   them** — its per-environment Vault `DATABASE_URL`. These values very likely differ
+   per environment and are likely NOT the placeholder in-cluster address. The Go
+   backend's prod reference shows an external IP and DB name `carbonmice` (no hyphen),
+   which differs from the placeholder `carbon-mice`. The operator MUST set the correct
+   per-env `DB_HOST`/`DB_NAME` before the first apply; both values currently carry a
+   `# CONFIRM` marker in the values files.
 2. **Vault:** create `mice-admin/<env>/fullstack/mice-admin-console-fs-secret` with keys:
    `RAILS_MASTER_KEY`, `DB_USER`, `DB_PASSWORD` (app role),
    `MIGRATOR_DB_USER`, `MIGRATOR_DB_PASSWORD`. The chart's `vaultStaticSecret`
@@ -135,6 +156,10 @@ applied to a cluster — needs a real namespace, DB roles, registry, and ingress
    2. Push `develop` once so `update-job` writes a real image tag into the values
       (avoids an empty-tag sync).
    3. Create/enable the ArgoCD Application for its first sync.
+   **Image availability:** the same "image must exist first" ordering applies to
+   uat/prod — the committed `/uat:latest` / `/prod:latest` placeholders do not exist
+   in Harbor until that environment's tag pipeline (`uat-vX.Y.Z` / `vX.Y.Z`) has run.
+   Do not enable the ArgoCD Application for an environment before its image exists.
    Steady-state syncs are unaffected — the Secret exists before any subsequent
    PreSync.
 5. **GitLab CI/CD variables:**
@@ -173,4 +198,9 @@ applied to a cluster — needs a real namespace, DB roles, registry, and ingress
 - `values.<env>.yml`: YAML parse + extract `extraObjects[0]` → `kubectl apply --dry-run=client`.
 - App's own chart sanity: `helm lint deploy/helm/carbonmice-admin --set secret.railsMasterKey=x --set secret.appDbPassword=x --set secret.migratorDbPassword=x`.
 - `.gitlab-ci.yml` (both repos): YAML parse + structural diff vs `carbonmice-main-fe`.
-- Pending online: GitLab CI Lint, `helm template` against the real shared chart, a cluster apply.
+- `developer/share/ci` (`main` branch, cloned locally): verified that `build.yml` passes
+  `--build-arg PROXY_IMAGE_PREFIX=${PROXY_IMAGE_PREFIX}` (the arg name Task 1's Dockerfile
+  relies on) and that the `.update-deployment-template-{dev,uat,production}` anchors exist
+  on that branch. The residual online check is only to confirm the GitLab-hosted `main` has
+  not drifted — do this via GitLab CI Lint before first deploy.
+- Pending online: GitLab CI Lint (drift check on hosted `main`), `helm template` against the real shared chart, a cluster apply.
